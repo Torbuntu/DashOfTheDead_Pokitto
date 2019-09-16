@@ -5,20 +5,30 @@ import femto.input.Button;
 import femto.palette.GrungeShift;
 import femto.font.TIC80;
 
+import backgrounds.Yard;
+import backgrounds.TreesOne;
+import backgrounds.TreesTwo;
+import backgrounds.Houses;
+
+import entities.Enemy;
 
 import Tor;
 
 class Main extends State {
 
     HiRes16Color screen; // the screenmode we want to draw with
-
-
+    Yard yard;
+    TreesOne treesOne;
+    TreesTwo treesTwo;
+    Houses houses;
+    
+    float tOneX, tTwoX, housesX;
+    boolean jump = false;
     Tor tor;
+    Enemy enemy;
 
-    Pattern background; // static image
-    float angle; // floats are actually FixedPoint (23.8)
-    int dxs, dys;
-    int counter, speed; // variables are automatically initialized to 0 or null
+    float dxs, dys, exs;
+    int timer;
 
     // start the game using Main as the initial state
     // and TIC80 as the menu's font
@@ -30,12 +40,27 @@ class Main extends State {
     // Allocate on init instead.
     void init(){
         screen = new HiRes16Color(GrungeShift.palette(), TIC80.font());
-        background = new Pattern();
-        speed = 0;
+
+        yard = new Yard();
+        treesOne = new TreesOne();
+        treesTwo = new TreesTwo();
+        houses = new Houses();
+        
+        tOneX = 300;
+        tTwoX = 500;
+        housesX = 220;
         
         tor = new Tor();
-        tor.y = 70;
+        tor.y = 100;
+        tor.x = 10;
         tor.dash();
+        
+        enemy = new Enemy();
+        enemy.y = 100;
+        enemy.x = 200;
+        enemy.idle();
+        
+        timer = 0;
     }
     
     // Might help in certain situations
@@ -46,28 +71,56 @@ class Main extends State {
     // update is called by femto.Game every frame
     void update(){
         screen.clear(0);
-        dys = 0;
-        dxs = 0;
-        if(Button.Up.isPressed()) dys = -1;
-        if(Button.Down.isPressed()) dys = 1;
-        if(Button.Right.isPressed())dxs = 1;
-        if(Button.Left.isPressed()) dxs = -1;
-        
-        // Change to a new state when A is pressed
-        if( Button.A.justPressed() )
-            Game.changeState( new Main() );
+        if(jump){
+            dys += 0.3;
+        }else{
+            dys = 0;
+        }
+        if(tor.y >= 100){
+            tor.y = 100;
+            jump = false;
+            tor.dash();
+        }
 
-        // Fill the screen using Pattern.png
-            for( int x=0; x<440; x += background.width() ){
-                if(x+speed < -background.width()*2) speed = 0;
-                background.draw(screen, x+speed, 100);
-            }
-        speed--;
-        counter++;
+        dxs = 0;
+        if( Button.A.justPressed()  && !jump) {
+            dys = -4;
+            jump = true;
+            tor.jump();
+        }
+       // if(Button.Down.isPressed()) dys = 1;
+        if(Button.Right.isPressed())dxs = 2;
+        if(Button.Left.isPressed()) dxs = -2;
+
+        
+        timer++;
+        
+        tOneX -= 3.5;
+        tTwoX -= 3.25;
+        
+        housesX -= .60;
+        
+        exs -= 2;
+        
+        if(exs < -34) exs = 220;
+        
+        if(tOneX < -220) tOneX = Math.random(280, 400);
+        if(tTwoX < -220) tTwoX = Math.random(220, 350);
+        if(housesX < -220) housesX = Math.random(220, 300);
+        
+        yard.draw(screen, 0, 0);
+        
+        houses.draw(screen, housesX, 0);
+        treesOne.draw(screen, tOneX, 0);
+        treesTwo.draw(screen, tTwoX, 0);
+        
         
         tor.x += dxs;
         tor.y += dys;
         tor.draw(screen); // Animation is updated automatically
+        
+        enemy.x = exs;
+        enemy.draw(screen);
         
         // Update the screen with everything that was drawn
         screen.flush();

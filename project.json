@@ -188,6 +188,39 @@
 		},
 		"/JavaDashOfTheDead.bin.1.gif": {
 			"sdcard": false
+		},
+		"/backgrounds": {
+			"sdcard": false
+		},
+		"/backgrounds/Houses.png": {
+			"sdcard": false,
+			"implements": ""
+		},
+		"/backgrounds/TreesOne.png": {
+			"sdcard": false,
+			"implements": ""
+		},
+		"/backgrounds/TreesTwo.png": {
+			"sdcard": false,
+			"implements": ""
+		},
+		"/backgrounds/Yard.png": {
+			"sdcard": false,
+			"implements": ""
+		},
+		"/entities": {
+			"sdcard": false
+		},
+		"/entities/Enemy.aseprite": {
+			"sdcard": false
+		},
+		"/entities/Enemy.json": {
+			"sdcard": false,
+			"implements": ""
+		},
+		"/entities/Enemy.png": {
+			"sdcard": false,
+			"implements": ""
 		}
 	}
 }
