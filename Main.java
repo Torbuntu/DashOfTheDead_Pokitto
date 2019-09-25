@@ -23,12 +23,12 @@ class Main extends State {
     Houses houses;
     
     float tOneX, tTwoX, housesX;
-    boolean jump = false;
+    boolean jump = false, dashing = false;
     Tor tor;
     Enemy enemy;
 
     float dxs, dys, exs;
-    int timer;
+    int timer, dashTime;
 
     // start the game using Main as the initial state
     // and TIC80 as the menu's font
@@ -60,6 +60,7 @@ class Main extends State {
         enemy.x = 200;
         enemy.idle();
         
+        dashTime = 0;
         timer = 0;
     }
     
@@ -87,9 +88,22 @@ class Main extends State {
             dys = -4;
             jump = true;
             tor.jump();
+        }else if(Button.B.isPressed() && dashTime > 0){
+            dashTime--;
+            dashing = true;
         }
+        
+        if(!Button.B.isPressed()){
+            dashing = false;
+        }
+        
+        if(dashTime <= 0 ){
+            dashing = false;
+            dashTime = 500;
+        }
+        
        // if(Button.Down.isPressed()) dys = 1;
-        if(Button.Right.isPressed())dxs = 2;
+        if(Button.Right.isPressed()) dxs = 2;
         if(Button.Left.isPressed()) dxs = -2;
 
         
@@ -118,6 +132,13 @@ class Main extends State {
         tor.x += dxs;
         tor.y += dys;
         tor.draw(screen); // Animation is updated automatically
+        
+        if(dashing){
+            tor.draw(screen, tor.x-1, tor.y);
+            tor.draw(screen, tor.x-2, tor.y);
+            tor.draw(screen, tor.x-3, tor.y);
+            tor.x+=7;
+        }
         
         enemy.x = exs;
         enemy.draw(screen);

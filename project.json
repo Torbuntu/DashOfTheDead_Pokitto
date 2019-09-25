@@ -221,6 +221,16 @@
 		"/entities/Enemy.png": {
 			"sdcard": false,
 			"implements": ""
+		},
+		"/Javadashofthedead.elf": {
+			"sdcard": false
+		},
+		"/Javadashofthedead.bin": {
+			"sdcard": false
+		},
+		"/Javadashofthedead.bin.1.png": {
+			"sdcard": false,
+			"implements": ""
 		}
 	}
 }
