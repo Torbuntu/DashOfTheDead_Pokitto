@@ -23,13 +23,12 @@ class Main extends State {
     Houses houses;
     
     float tOneX, tTwoX, housesX;
-    boolean jump = false, dashing = false;
+    boolean jump = false, dashing = false, dashReady = true;
     Tor tor;
     Enemy enemy;
 
-    float dxs, dys, exs;
-    int timer, dashTime, dashCharge, speed, torSpeed, torJump;
-    
+    float dxs, dys, exs, torJump;
+    int timer, dashTime, dashCharge, speed, torSpeed, powerReady;
     
     int quantity, coffeeY;
     int[] coffees;
@@ -71,6 +70,7 @@ class Main extends State {
         torSpeed = 0;
 
         quantity = 0;
+        powerReady = -1;
         int y = Math.random(70, 120);
         generateCoffeeDrops(y);
     }
@@ -95,33 +95,60 @@ class Main extends State {
         
         timer++;
         
-        if(jump){
+        if(jump && !dashing){
             dys += 0.3;
         }else{
             dys = 0;
         }
+        
         if(tor.y >= 100){
             tor.y = 100;
             jump = false;
             tor.dash();
         }
 
-        if( Button.A.justPressed()  && !jump) {
+        if( Button.A.justPressed() && !jump) {
             dys = -4+torJump;
             jump = true;
             tor.jump();
-        }else if(Button.B.isPressed() && dashTime > 0){
+        }
+        
+        if(Button.B.isPressed() && dashTime > 0 && dashReady){
             dashTime--;
             dashing = true;
+        }
+        
+        if(Button.C.justPressed()){
+            switch(powerReady){
+                case 0:
+                    powerReady = -1;
+                    quantity = 0;
+                    dashCharge += 10;
+                    break;
+                case 1:
+                    torJump-=0.2;
+                    powerReady = -1;
+                    break;
+                default:
+                    break;
+            }
         }
         
         if(!Button.B.isPressed()){
             dashing = false;
         }
         
+        if(!dashReady){
+            dashTime++;
+            if(dashTime >= dashCharge){
+                dashTime = dashCharge;
+                dashReady = true;
+            }
+        }
+        
         if(dashTime <= 0 ){
             dashing = false;
-            dashTime = 50;
+            dashReady = false;
         }
 
         //START Draw BG
@@ -144,12 +171,16 @@ class Main extends State {
         tor.draw(screen); // Animation is updated automatically
         
         if(dashing){
-            tor.draw(screen, tor.x-2, tor.y);
-            tor.draw(screen, tor.x-4, tor.y);
             tor.draw(screen, tor.x-6, tor.y);
-            tor.x+=12;
+            tor.draw(screen, tor.x-12, tor.y);
+            tor.draw(screen, tor.x-18, tor.y);
+            tor.x+=36;
         }
         
+        screen.drawRect(0, 170, dashCharge, 4, 5);
+        screen.fillRect(1, 171, dashTime, 2, 6);
+        
+        updatePower();
         checkCoffeeCollect();
         updateCoffeeDrops();
         drawCoffeeDrops();
@@ -176,10 +207,18 @@ class Main extends State {
         }
     }
     
+    void updatePower(){
+        if(quantity >= 10){
+            powerReady++;
+            quantity = 0;
+        }
+        if(powerReady >= 5) powerReady = 5;
+    }
+    
     void updateCoffeeDrops(){
         int reset = 0;
         for(int x = 0; x < 6; x++){
-            coffees[x]--;
+            coffees[x]-= 1+speed;
             if(coffees[x] < 0 && coffees[x] > -10) coffees[x] = 221;
             if(coffees[x] < -10) reset++;
         }
@@ -196,13 +235,8 @@ class Main extends State {
     
     void drawUpgrades(){
         for(int i = 0; i < 5; i++){
-            if(quantity/10 == i){
-                screen.fillRect(32*i+9, 151, 22, 8, 11);
-            }
             screen.drawRect(32*i+8, 150, 24, 10, 10);
         }
-        if(quantity > 50){
-            screen.fillRect(32*4+9, 151, 22, 8, 11);
-        }
+        screen.fillRect(32*powerReady+8, 151, 22, 8, 11);
     }
 }
