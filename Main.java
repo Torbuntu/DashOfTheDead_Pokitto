@@ -5,11 +5,6 @@ import femto.input.Button;
 import femto.palette.GrungeShift;
 import femto.font.TIC80;
 
-import backgrounds.Yard;
-import backgrounds.TreesOne;
-import backgrounds.TreesTwo;
-import backgrounds.Houses;
-
 import entities.Enemy;
 
 import Tor;
@@ -17,17 +12,11 @@ import Tor;
 class Main extends State {
 
     HiRes16Color screen; // the screenmode we want to draw with
-    Yard yard;
-    TreesOne treesOne;
-    TreesTwo treesTwo;
-    Houses houses;
-    
-    float tOneX, tTwoX, housesX;
+
     boolean jump = false, dashing = false, dashReady = true;
     Tor tor;
-    Enemy enemy;
 
-    float dxs, dys, exs, torJump;
+    float dxs, dys, torJump, torGravity;
     int timer, dashTime, dashCharge, speed, torSpeed, powerReady;
     
     int quantity, coffeeY;
@@ -44,30 +33,17 @@ class Main extends State {
     void init(){
         screen = new HiRes16Color(GrungeShift.palette(), TIC80.font());
 
-        yard = new Yard();
-        treesOne = new TreesOne();
-        treesTwo = new TreesTwo();
-        houses = new Houses();
-        
-        tOneX = 300;
-        tTwoX = 500;
-        housesX = 220;
-        
         tor = new Tor();
         tor.y = 100;
-        tor.x = 16;
-        tor.dash();
-        
-        enemy = new Enemy();
-        enemy.y = 100;
-        enemy.x = 200;
-        enemy.idle();
-        
+        tor.x = 32;
+        tor.run();
+
         dashTime = 0;
         dashCharge = 50;
         timer = 0;
         speed = 0;
         torSpeed = 0;
+        torGravity = 0.2;
 
         quantity = 0;
         powerReady = -1;
@@ -91,12 +67,15 @@ class Main extends State {
     
     // update is called by femto.Game every frame
     void update(){
-        screen.clear(0);
+        screen.clear(7);
         
         timer++;
         
         if(jump && !dashing){
-            dys += 0.3;
+            dys += torGravity;//Gravity
+            if(Button.Down.isPressed()){
+                dys += 0.2;
+            }
         }else{
             dys = 0;
         }
@@ -104,7 +83,7 @@ class Main extends State {
         if(tor.y >= 100){
             tor.y = 100;
             jump = false;
-            tor.dash();
+            if(!dashing)tor.run();
         }
 
         if( Button.A.justPressed() && !jump) {
@@ -116,6 +95,7 @@ class Main extends State {
         if(Button.B.isPressed() && dashTime > 0 && dashReady){
             dashTime--;
             dashing = true;
+            tor.dash();
         }
         
         if(Button.C.justPressed()){
@@ -129,13 +109,21 @@ class Main extends State {
                     torJump-=0.2;
                     powerReady = -1;
                     break;
+                case 2:
+                    torGravity -= 0.05;
+                    if(torGravity <= 0.0)torGravity = 0.01;
+                    powerReady = -1;
+                    break;
                 default:
                     break;
             }
         }
         
         if(!Button.B.isPressed()){
-            dashing = false;
+            if(dashing){
+                dashing = false;
+                tor.run();
+            }
         }
         
         if(!dashReady){
@@ -149,46 +137,28 @@ class Main extends State {
         if(dashTime <= 0 ){
             dashing = false;
             dashReady = false;
+            tor.run();
         }
 
         //START Draw BG
-        tOneX -= 3.5+speed;
-        tTwoX -= 3.25+speed;
-        housesX -= .60+speed;
-        exs -= 2+speed;
-        if(exs < -34) exs = 220;
-        if(tOneX < -220) tOneX = Math.random(280, 400);
-        if(tTwoX < -220) tTwoX = Math.random(220, 350);
-        if(housesX < -220) housesX = Math.random(220, 300);
-        yard.draw(screen, 0, 0);
-        houses.draw(screen, housesX, 0);
-        treesOne.draw(screen, tOneX, 0);
-        treesTwo.draw(screen, tTwoX, 0);
+        screen.fillRect(0, 128, 230, 10, 1);
+        screen.fillRect(0, 138, 230, 50, 0);
         //END Draw BG
         if(dashing)speed = 2;
         else speed = 0;
+        
         tor.y += dys;
         tor.draw(screen); // Animation is updated automatically
+     
         
-        if(dashing){
-            tor.draw(screen, tor.x-6, tor.y);
-            tor.draw(screen, tor.x-12, tor.y);
-            tor.draw(screen, tor.x-18, tor.y);
-            tor.x+=36;
-        }
-        
-        screen.drawRect(0, 170, dashCharge, 4, 5);
-        screen.fillRect(1, 171, dashTime, 2, 6);
+        screen.drawRect(0, 170, dashCharge+1, 4, 5);
+        screen.fillRect(1, 171, dashTime, 3, 6);
         
         updatePower();
         checkCoffeeCollect();
         updateCoffeeDrops();
         drawCoffeeDrops();
-        
-        enemy.x = exs;
-        enemy.draw(screen);
-        
-        
+
         drawUpgrades();
         
         // Update the screen with everything that was drawn
@@ -212,7 +182,7 @@ class Main extends State {
             powerReady++;
             quantity = 0;
         }
-        if(powerReady >= 5) powerReady = 5;
+        if(powerReady >= 5) powerReady = 0;
     }
     
     void updateCoffeeDrops(){
@@ -234,9 +204,9 @@ class Main extends State {
     }
     
     void drawUpgrades(){
-        for(int i = 0; i < 5; i++){
-            screen.drawRect(32*i+8, 150, 24, 10, 10);
+        for(int i = 0; i < 6; i++){
+            screen.drawRect(32*i+8, 150, 20, 6, 10);
         }
-        screen.fillRect(32*powerReady+8, 151, 22, 8, 11);
+        screen.fillRect(32*powerReady+9, 152, 18, 4, 11);
     }
 }

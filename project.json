@@ -231,6 +231,9 @@
 		"/Javadashofthedead.bin.1.png": {
 			"sdcard": false,
 			"implements": ""
+		},
+		"/Javadashofthedead.bin.1.gif": {
+			"sdcard": false
 		}
 	}
 }
