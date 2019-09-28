@@ -15,3 +15,8 @@ Obstacles may become a problem, so Torbuntu must dash through them!
 See how far Torbuntu can get before running out of energy or slamming into a solid surface. 
 
 #### Possible upgrade mechanics include: Higher jump, double jump, dash distance, dash power, energy depletion slow down, bigger energy bar. 
+
+
+## Day something
+
+![](https://github.com/Torbuntu/JavaDashOfTheDead/blob/master/Javadashofthedead.bin.1.gif)
