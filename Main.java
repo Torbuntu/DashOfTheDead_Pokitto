@@ -5,8 +5,6 @@ import femto.input.Button;
 import femto.palette.GrungeShift;
 import femto.font.TIC80;
 
-import entities.Enemy;
-
 import Tor;
 
 class Main extends State {
@@ -15,7 +13,7 @@ class Main extends State {
 
     boolean jump = false, dashing = false, dashReady = true;
     Tor tor;
-
+    
     float dxs, dys, torJump, torGravity;
     int timer, dashTime, dashCharge, speed, torSpeed, powerReady;
     
@@ -146,11 +144,10 @@ class Main extends State {
         //END Draw BG
         if(dashing)speed = 2;
         else speed = 0;
-        
+
         tor.y += dys;
         tor.draw(screen); // Animation is updated automatically
-     
-        
+
         screen.drawRect(0, 170, dashCharge+1, 4, 5);
         screen.fillRect(1, 171, dashTime, 3, 6);
         

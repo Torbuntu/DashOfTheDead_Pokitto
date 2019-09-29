@@ -234,6 +234,17 @@
 		},
 		"/Javadashofthedead.bin.1.gif": {
 			"sdcard": false
+		},
+		"/Trashcan.aseprite": {
+			"sdcard": false
+		},
+		"/Trashcan.png": {
+			"sdcard": false,
+			"implements": ""
+		},
+		"/Trashcan.json": {
+			"sdcard": false,
+			"implements": ""
 		}
 	}
 }
