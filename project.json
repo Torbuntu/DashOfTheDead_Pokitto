@@ -231,6 +231,31 @@
 		"/Javadashofthedead.bin.1.png": {
 			"sdcard": false,
 			"implements": ""
+		},
+		"/Javadashofthedead.bin.1.gif": {
+			"sdcard": false
+		},
+		"/Trashcan.aseprite": {
+			"sdcard": false
+		},
+		"/Trashcan.png": {
+			"sdcard": false,
+			"implements": ""
+		},
+		"/Trashcan.json": {
+			"sdcard": false,
+			"implements": ""
+		},
+		"/Slam.aseprite": {
+			"sdcard": false
+		},
+		"/Slam.json": {
+			"sdcard": false,
+			"implements": ""
+		},
+		"/Slam.png": {
+			"sdcard": false,
+			"implements": ""
 		}
 	}
 }
