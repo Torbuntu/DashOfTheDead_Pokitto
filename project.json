@@ -256,6 +256,30 @@
 		"/Slam.png": {
 			"sdcard": false,
 			"implements": ""
+		},
+		"/DungeonBackground.aseprite": {
+			"sdcard": false
+		},
+		"/DungeonBackground.png": {
+			"sdcard": false,
+			"implements": ""
+		},
+		"/Ghoul.aseprite": {
+			"sdcard": false
+		},
+		"/Ghoul.json": {
+			"sdcard": false,
+			"implements": ""
+		},
+		"/Ghoul.png": {
+			"sdcard": false,
+			"implements": ""
+		},
+		"/JavaDashPalette.aseprite": {
+			"sdcard": false
+		},
+		"/JavaDashPalette.pal": {
+			"sdcard": false
 		}
 	}
 }

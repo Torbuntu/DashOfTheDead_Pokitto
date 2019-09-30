@@ -2,10 +2,12 @@ import femto.mode.HiRes16Color;
 import femto.Game;
 import femto.State;
 import femto.input.Button;
-import femto.palette.GrungeShift;
+import JavaDashPalette;
 import femto.font.TIC80;
 
 import Tor;
+import Ghoul;
+import DungeonBackground;
 
 class Main extends State {
 
@@ -13,9 +15,11 @@ class Main extends State {
 
     boolean jump = false, dashing = false, dashReady = true;
     Tor tor;
+    Ghoul ghoul;
+    DungeonBackground dungeonBackground;
     
-    float dxs, dys, torGravity, E1, E2;
-    int dashTime, dashCharge, speed, torSpeed, powerReady, torHits, torMaxJump, torJump;
+    float dxs, dys, torGravity;
+    int dashTime, dashCharge, speed, torSpeed, powerReady, torHits, torMaxJump, torJump, dgnX, E1, E2;
     
     int quantity, coffeeY;
     int[] coffees;
@@ -29,12 +33,20 @@ class Main extends State {
     // Avoid allocation in a State's constructor.
     // Allocate on init instead.
     void init(){
-        screen = new HiRes16Color(GrungeShift.palette(), TIC80.font());
+        screen = new HiRes16Color(JavaDashPalette.palette(), TIC80.font());
 
         tor = new Tor();
         tor.y = 100;
         tor.x = 32;
         tor.run();
+        
+        ghoul = new Ghoul();
+        ghoul.x = 220;
+        ghoul.y = Math.random(40, 120);
+        ghoul.grab();
+        
+        dungeonBackground = new DungeonBackground();
+        dgnX = 0;
 
         dashTime = 0;
         dashCharge = 50;
@@ -69,10 +81,25 @@ class Main extends State {
     
     // update is called by femto.Game every frame
     void update(){
-        screen.clear(7);
+        screen.clear(0);
+        
+        dgnX -= 1+speed;
+        if(dgnX <= -220) dgnX = 0;
+        dungeonBackground.draw(screen, dgnX-220, 0);
+        dungeonBackground.draw(screen, dgnX, 0);
+        dungeonBackground.draw(screen, dgnX+220, 0);
+        
+        //ENEMY
+        ghoul.x-=1+speed;
+        if(ghoul.x <= -20){
+            ghoul.x = Math.random(220, 600);
+            ghoul.y = Math.random(50, 120);
+            ghoul.grab();
+        }
+        ghoul.draw(screen);
         
         //START Draw BG
-        screen.fillRect(0, 128, 230, 10, 8);
+        //screen.fillRect(0, 128, 230, 10, 8);
         screen.fillRect(0, 138, 230, 50, 0);
         //END Draw BG
         if(dashing)speed = 3;
@@ -90,12 +117,14 @@ class Main extends State {
         if(E2 <= -10) E2 = Math.random(220, 400);
         
         //enemies
-        screen.fillCircle((int)E1, 80, 4, 5);
-        screen.fillCircle((int)E2, 90, 4, 5);
+        screen.fillCircle(E1, 80, 4, 5);
+        screen.fillCircle(E2, 90, 4, 5);
+        if((E1 - E2 > 0 && E1 - E2 < 120) || (E2 - E1 > 0 && E2 - E1 < 120))screen.drawLine(E1, 80, E2, 90, 5);
         
 
         drawPowerBox();
         drawTorHits();
+        drawJumps();
         
         updatePower();
         checkCoffeeCollect();
@@ -130,6 +159,10 @@ class Main extends State {
             }
         }else{
             dys = 0;
+        }
+        
+        if(tor.y <= 0){
+            tor.y = 0;
         }
         
         if(tor.y >= 100){
@@ -177,7 +210,7 @@ class Main extends State {
         if(!Button.B.isPressed()){
             if(dashing){
                 dashing = false;
-                tor.run();
+                tor.jump();
             }
         }
         //END Input
@@ -193,7 +226,7 @@ class Main extends State {
         if(dashTime <= 0 ){
             dashing = false;
             dashReady = false;
-            tor.run();
+            tor.jump();
         }
     }
     
@@ -250,7 +283,13 @@ class Main extends State {
     
     void drawTorHits(){
         for(int j = 0; j < torHits; j++){
-            screen.drawCircle(10*j+10, 164, 2, 5);
+            screen.drawCircle(10*j+10, 163, 2, 5);
+        }
+    }
+    
+    void drawJumps(){
+        for(int i = 0; i < torJump; i++){
+            screen.drawCircle(4*i+9, 170, 1, 10);
         }
     }
 }
