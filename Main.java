@@ -14,8 +14,8 @@ class Main extends State {
     boolean jump = false, dashing = false, dashReady = true;
     Tor tor;
     
-    float dxs, dys, torJump, torGravity;
-    int timer, dashTime, dashCharge, speed, torSpeed, powerReady;
+    float dxs, dys, torGravity, E1, E2;
+    int dashTime, dashCharge, speed, torSpeed, powerReady, torHits, torMaxJump, torJump;
     
     int quantity, coffeeY;
     int[] coffees;
@@ -38,13 +38,17 @@ class Main extends State {
 
         dashTime = 0;
         dashCharge = 50;
-        timer = 0;
-        speed = 0;
+        speed = 1;
         torSpeed = 0;
         torGravity = 0.2;
+        torHits = 3;
+        torMaxJump = 1;
+        torJump = 1;
 
         quantity = 0;
         powerReady = -1;
+        E1 = Math.random(220, 400);
+        E2 = Math.random(220, 400);
         int y = Math.random(70, 120);
         generateCoffeeDrops(y);
     }
@@ -67,12 +71,62 @@ class Main extends State {
     void update(){
         screen.clear(7);
         
-        timer++;
+        //START Draw BG
+        screen.fillRect(0, 128, 230, 10, 8);
+        screen.fillRect(0, 138, 230, 50, 0);
+        //END Draw BG
+        if(dashing)speed = 3;
+        else speed = 1;
         
+        updateTor();
+
+        tor.y += dys;
+        tor.draw(screen); // Animation is updated automatically
+        
+        E1-=1+speed;
+        E2-=1+speed;
+        
+        if(E1 <= -10) E1 = Math.random(220, 400);
+        if(E2 <= -10) E2 = Math.random(220, 400);
+        
+        //enemies
+        screen.fillCircle((int)E1, 80, 4, 5);
+        screen.fillCircle((int)E2, 90, 4, 5);
+        
+
+        drawPowerBox();
+        drawTorHits();
+        
+        updatePower();
+        checkCoffeeCollect();
+        updateCoffeeDrops();
+        drawCoffeeDrops();
+
+        drawUpgrades();
+        
+        // Update the screen with everything that was drawn
+        screen.flush();
+    }
+    
+    void checkCoffeeCollect(){
+        //debug hit box
+        //screen.drawRect((int)tor.x, (int)tor.y+4, (int)tor.width(), (int)tor.height() - 4, 5);
+        for(int x = 0; x < 6; x++){
+            if(tor.x < coffees[x] + 4 && tor.x + tor.width() > coffees[x] &&
+                tor.y + 4 < coffeeY + 6 && tor.y + 4 + tor.height() - 4 > coffeeY)
+            {
+                quantity++;
+                coffees[x] = -20;
+            }
+        }
+    }
+    
+    
+    void updateTor(){
         if(jump && !dashing){
             dys += torGravity;//Gravity
             if(Button.Down.isPressed()){
-                dys += 0.2;
+                dys += 0.4;
             }
         }else{
             dys = 0;
@@ -81,12 +135,15 @@ class Main extends State {
         if(tor.y >= 100){
             tor.y = 100;
             jump = false;
+            torJump = torMaxJump;
             if(!dashing)tor.run();
         }
 
-        if( Button.A.justPressed() && !jump) {
-            dys = -4+torJump;
-            jump = true;
+        //INPUT
+        if( Button.A.justPressed() && (!jump || torJump > 0)) {
+            dys = -3.5;
+            torJump--;
+            jump = true;  
             tor.jump();
         }
         
@@ -104,12 +161,12 @@ class Main extends State {
                     dashCharge += 10;
                     break;
                 case 1:
-                    torJump-=0.2;
+                    torMaxJump++;
+                    torJump = torMaxJump;
                     powerReady = -1;
                     break;
                 case 2:
-                    torGravity -= 0.05;
-                    if(torGravity <= 0.0)torGravity = 0.01;
+                    if(torHits < 6) torHits++;
                     powerReady = -1;
                     break;
                 default:
@@ -123,6 +180,7 @@ class Main extends State {
                 tor.run();
             }
         }
+        //END Input
         
         if(!dashReady){
             dashTime++;
@@ -137,41 +195,6 @@ class Main extends State {
             dashReady = false;
             tor.run();
         }
-
-        //START Draw BG
-        screen.fillRect(0, 128, 230, 10, 1);
-        screen.fillRect(0, 138, 230, 50, 0);
-        //END Draw BG
-        if(dashing)speed = 2;
-        else speed = 0;
-
-        tor.y += dys;
-        tor.draw(screen); // Animation is updated automatically
-
-        screen.drawRect(0, 170, dashCharge+1, 4, 5);
-        screen.fillRect(1, 171, dashTime, 3, 6);
-        
-        updatePower();
-        checkCoffeeCollect();
-        updateCoffeeDrops();
-        drawCoffeeDrops();
-
-        drawUpgrades();
-        
-        // Update the screen with everything that was drawn
-        screen.flush();
-    }
-    
-    void checkCoffeeCollect(){
-        for(int x = 0; x < 6; x++){
-            if(tor.x < coffees[x] + 4 && tor.x + 24 > coffees[x] &&
-                tor.y < coffeeY + 6 && tor.y + 24 > coffeeY)
-            {
-                System.out.println("Collision Detected: " + quantity);
-                quantity++;
-                coffees[x] = -20;
-            }
-        }
     }
     
     void updatePower(){
@@ -179,14 +202,13 @@ class Main extends State {
             powerReady++;
             quantity = 0;
         }
-        if(powerReady >= 5) powerReady = 0;
+        if(powerReady >= 3) powerReady = 0;
     }
     
     void updateCoffeeDrops(){
         int reset = 0;
         for(int x = 0; x < 6; x++){
             coffees[x]-= 1+speed;
-            if(coffees[x] < 0 && coffees[x] > -10) coffees[x] = 221;
             if(coffees[x] < -10) reset++;
         }
         if(reset > 5){
@@ -201,9 +223,34 @@ class Main extends State {
     }
     
     void drawUpgrades(){
-        for(int i = 0; i < 6; i++){
-            screen.drawRect(32*i+8, 150, 20, 6, 10);
+        screen.setTextColor(10);
+        screen.setTextPosition(10, 142);
+        screen.print("PWR");
+        
+        screen.setTextPosition(34, 142);
+        screen.print("JMP");
+        
+        screen.setTextPosition(58, 142);
+        screen.print("HIT");
+        
+        for(int i = 0; i < 3; i++){
+            if(i==powerReady){
+                screen.drawRect(24*i+8, 140, 20, 8, 5);
+            }else{
+                screen.drawRect(24*i+8, 140, 20, 8, 10);
+            }
         }
-        screen.fillRect(32*powerReady+9, 152, 18, 4, 11);
+    }
+    
+    void drawPowerBox(){
+        //draw charge box
+        screen.drawRect(8, 152, dashCharge+1, 4, 5);
+        screen.fillRect(9, 153, dashTime, 3, 6);
+    }
+    
+    void drawTorHits(){
+        for(int j = 0; j < torHits; j++){
+            screen.drawCircle(10*j+10, 164, 2, 5);
+        }
     }
 }

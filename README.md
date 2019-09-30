@@ -20,3 +20,9 @@ See how far Torbuntu can get before running out of energy or slamming into a sol
 ## Day something
 
 ![](https://github.com/Torbuntu/JavaDashOfTheDead/blob/master/Javadashofthedead.bin.1.gif)
+
+
+## Next Day
+
+The story evolves. The plan is to be running through the castle of a Vampire. You are trying to collec the treasure strewn about the castle without getting caught. Bats and other
+strange beasts are wandering the halls of the castle, you must dodge them while collecting the precious loot! 

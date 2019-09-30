@@ -245,6 +245,17 @@
 		"/Trashcan.json": {
 			"sdcard": false,
 			"implements": ""
+		},
+		"/Slam.aseprite": {
+			"sdcard": false
+		},
+		"/Slam.json": {
+			"sdcard": false,
+			"implements": ""
+		},
+		"/Slam.png": {
+			"sdcard": false,
+			"implements": ""
 		}
 	}
 }
