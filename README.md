@@ -31,3 +31,4 @@ Added:
 * Ghouls! They try to grab you. You can dash through them to splatter them across the wall.
 * Platforms! Now you can jump on elevated platforms to dodge foes and reach hard to get items.
 * Dungeon Background! The scene is being set in the dungeon of a vampire castle.
+* Distance meter! Not really useful yet. But it will eventually be used to unlock achievments and increase the difficulty.
