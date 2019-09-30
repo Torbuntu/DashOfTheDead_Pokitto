@@ -9,6 +9,8 @@ import Tor;
 import Ghoul;
 import DungeonBackground;
 
+import Platform;
+
 class Main extends State {
 
     HiRes16Color screen; // the screenmode we want to draw with
@@ -18,8 +20,10 @@ class Main extends State {
     Ghoul ghoul;
     DungeonBackground dungeonBackground;
     
+    Platform platform;
+    
     float dxs, dys, torGravity;
-    int dashTime, dashCharge, speed, torSpeed, powerReady, torHits, torMaxJump, torJump, dgnX, E1, E2, torHurt;
+    int dashTime, dashCharge, speed, torSpeed, powerReady, torHits, torMaxJump, torJump, dgnX, torHurt, distance;
     
     int quantity, coffeeY;
     int[] coffees;
@@ -48,6 +52,11 @@ class Main extends State {
         dungeonBackground = new DungeonBackground();
         dgnX = 0;
 
+        platform = new Platform();
+        platform.idle();
+        platform.x = 220;
+        platform.y = Math.random(38, 100);
+
         dashTime = 0;
         dashCharge = 50;
         speed = 1;
@@ -57,11 +66,11 @@ class Main extends State {
         torMaxJump = 1;
         torJump = 1;
         torHurt = 0;
+        
+        distance = 0;
 
         quantity = 0;
         powerReady = -1;
-        E1 = Math.random(220, 400);
-        E2 = Math.random(220, 400);
         int y = Math.random(70, 120);
         generateCoffeeDrops(y);
     }
@@ -83,25 +92,43 @@ class Main extends State {
     // update is called by femto.Game every frame
     void update(){
         screen.clear(0);
+        distance+=1+speed;
         
+        //Dungeon background
         dgnX -= 1+speed;
         if(dgnX <= -220) dgnX = 0;
         dungeonBackground.draw(screen, dgnX-220, 0);
         dungeonBackground.draw(screen, dgnX, 0);
         dungeonBackground.draw(screen, dgnX+220, 0);
+        //END Dungeon background
         
-        //ENEMY
+        //GHOUL
         ghoul.x-=1+speed;
         if(ghoul.x <= -20){
             ghoul.x = Math.random(220, 600);
             ghoul.y = Math.random(50, 120);
+            if(platform.x < ghoul.x + ghoul.width() &&
+                platform.x + platform.width() > ghoul.x &&
+                platform.y < ghoul.y + ghoul.height()-8 &&
+                platform.y + platform.height() > ghoul.y){
+                ghoul.y += 30;
+            }
             ghoul.grab();
             ghoulDead = false;
         }
         ghoul.draw(screen);
+        //END GHOUL
+        
+        //START PLATFORM
+        platform.x -= 1+speed;
+        if(platform.x < -200){
+            platform.x = Math.random(220, 500);
+            platform.y = Math.random(38, 100);
+        }
+        platform.draw(screen);
+        //END PLATFORM
         
         //START Draw BG
-        //screen.fillRect(0, 128, 230, 10, 8);
         screen.fillRect(0, 138, 230, 50, 0);
         //END Draw BG
         if(dashing)speed = 3;
@@ -109,20 +136,6 @@ class Main extends State {
         
         updateTor();
 
-        tor.y += dys;
-        tor.draw(screen); // Animation is updated automatically
-        
-        E1-=1+speed;
-        E2-=1+speed;
-        
-        if(E1 <= -10) E1 = Math.random(220, 400);
-        if(E2 <= -10) E2 = Math.random(220, 400);
-        
-        //enemies
-        screen.fillCircle(E1, 80, 4, 5);
-        screen.fillCircle(E2, 90, 4, 5);
-        if((E1 - E2 > 0 && E1 - E2 < 120) || (E2 - E1 > 0 && E2 - E1 < 120))screen.drawLine(E1, 80, E2, 90, 5);
-        
         if(torHurt > 0)torHurt--;
         checkGhoulGrabTor();
 
@@ -137,15 +150,15 @@ class Main extends State {
 
         drawUpgrades();
         
-        // Update the screen with everything that was drawn
+        //Draw position
+        screen.setTextPosition(0, 0);
+        screen.setTextColor(10);
+        screen.print("Distance: "+distance);
+
         screen.flush();
     }
     
     void checkGhoulGrabTor(){
-        //debug box
-        // screen.drawRect((int)tor.x, (int)tor.y+4, (int)tor.width(), (int)tor.height()-8, 5);
-        // screen.drawRect((int)ghoul.x, (int)ghoul.y, (int)ghoul.width(), (int)ghoul.height()-8, 5);
-        //end debug box
         if(tor.x < ghoul.x + ghoul.width() &&
             tor.x + tor.width() > ghoul.x &&
             tor.y+4 < ghoul.y + ghoul.height()-8 &&
@@ -166,8 +179,6 @@ class Main extends State {
     }
     
     void checkCoffeeCollect(){
-        //debug hit box
-        //screen.drawRect((int)tor.x, (int)tor.y+4, (int)tor.width(), (int)tor.height() - 4, 5);
         for(int x = 0; x < 6; x++){
             if(tor.x < coffees[x] + 4 && tor.x + tor.width() > coffees[x] &&
                 tor.y + 4 < coffeeY + 6 && tor.y + 4 + tor.height() - 4 > coffeeY)
@@ -176,6 +187,25 @@ class Main extends State {
                 coffees[x] = -20;
             }
         }
+    }
+    
+    boolean checkTorPlatform(){
+        if(dys < 0.0)return false;//jumping
+        if(tor.x < platform.x + platform.width() &&
+            tor.x + tor.width() > platform.x &&
+            
+            tor.y + tor.height()-6 + dys< platform.y+10 &&
+            tor.y + tor.height()-6 + dys > platform.y+3)
+            {
+                if(!Button.Down.isPressed() ){
+                    dys = 0;
+                    torJump = torMaxJump;
+                    if(!dashing)tor.run();
+                    return true;
+                }
+               
+            }
+        return false;
     }
     
     
@@ -193,11 +223,13 @@ class Main extends State {
             tor.y = 0;
         }
         
-        if(tor.y >= 100){
-            tor.y = 100;
-            jump = false;
-            torJump = torMaxJump;
-            if(!dashing)tor.run();
+        if(!checkTorPlatform()){
+            if(tor.y >= 100){
+                tor.y = 100;
+                jump = false;
+                torJump = torMaxJump;
+                if(!dashing)tor.run();
+            }
         }
 
         //INPUT
@@ -227,7 +259,7 @@ class Main extends State {
                     powerReady = -1;
                     break;
                 case 2:
-                    if(torHits < 6) torHits++;
+                    torHits++;
                     powerReady = -1;
                     break;
                 default:
@@ -256,6 +288,9 @@ class Main extends State {
             dashReady = false;
             tor.jump();
         }
+        
+        tor.y += dys;
+        tor.draw(screen); // Animation is updated automatically
     }
     
     void updatePower(){

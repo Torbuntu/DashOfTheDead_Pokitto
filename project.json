@@ -280,6 +280,17 @@
 		},
 		"/JavaDashPalette.pal": {
 			"sdcard": false
+		},
+		"/Platform.aseprite": {
+			"sdcard": false
+		},
+		"/Platform.json": {
+			"sdcard": false,
+			"implements": ""
+		},
+		"/Platform.png": {
+			"sdcard": false,
+			"implements": ""
 		}
 	}
 }
