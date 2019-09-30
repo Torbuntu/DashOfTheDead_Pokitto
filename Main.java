@@ -13,13 +13,13 @@ class Main extends State {
 
     HiRes16Color screen; // the screenmode we want to draw with
 
-    boolean jump = false, dashing = false, dashReady = true;
+    boolean jump = false, dashing = false, dashReady = true, ghoulDead = false;
     Tor tor;
     Ghoul ghoul;
     DungeonBackground dungeonBackground;
     
     float dxs, dys, torGravity;
-    int dashTime, dashCharge, speed, torSpeed, powerReady, torHits, torMaxJump, torJump, dgnX, E1, E2;
+    int dashTime, dashCharge, speed, torSpeed, powerReady, torHits, torMaxJump, torJump, dgnX, E1, E2, torHurt;
     
     int quantity, coffeeY;
     int[] coffees;
@@ -56,6 +56,7 @@ class Main extends State {
         torHits = 3;
         torMaxJump = 1;
         torJump = 1;
+        torHurt = 0;
 
         quantity = 0;
         powerReady = -1;
@@ -95,6 +96,7 @@ class Main extends State {
             ghoul.x = Math.random(220, 600);
             ghoul.y = Math.random(50, 120);
             ghoul.grab();
+            ghoulDead = false;
         }
         ghoul.draw(screen);
         
@@ -121,6 +123,8 @@ class Main extends State {
         screen.fillCircle(E2, 90, 4, 5);
         if((E1 - E2 > 0 && E1 - E2 < 120) || (E2 - E1 > 0 && E2 - E1 < 120))screen.drawLine(E1, 80, E2, 90, 5);
         
+        if(torHurt > 0)torHurt--;
+        checkGhoulGrabTor();
 
         drawPowerBox();
         drawTorHits();
@@ -135,6 +139,30 @@ class Main extends State {
         
         // Update the screen with everything that was drawn
         screen.flush();
+    }
+    
+    void checkGhoulGrabTor(){
+        //debug box
+        // screen.drawRect((int)tor.x, (int)tor.y+4, (int)tor.width(), (int)tor.height()-8, 5);
+        // screen.drawRect((int)ghoul.x, (int)ghoul.y, (int)ghoul.width(), (int)ghoul.height()-8, 5);
+        //end debug box
+        if(tor.x < ghoul.x + ghoul.width() &&
+            tor.x + tor.width() > ghoul.x &&
+            tor.y+4 < ghoul.y + ghoul.height()-8 &&
+            tor.y+4 + tor.height()-8 > ghoul.y)
+            {
+                if(dashing){
+                    ghoul.dead();
+                    ghoulDead = true;
+                    System.out.println("TOR KILL GHOUL!");
+                }else{
+                    if(torHurt <= 0 && !ghoulDead){
+                        torHits-=1;
+                        torHurt = 150;
+                        System.out.println("GHOUL ATTACK!");
+                    }
+                }
+            }
     }
     
     void checkCoffeeCollect(){
