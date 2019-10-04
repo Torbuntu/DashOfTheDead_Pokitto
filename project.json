@@ -317,6 +317,21 @@
 		"/Door.png": {
 			"implements": "",
 			"sdcard": false
+		},
+		"/FrontBackground.png": {
+			"sdcard": false,
+			"implements": ""
+		},
+		"/Spikes.aseprite": {
+			"sdcard": false
+		},
+		"/Spikes.json": {
+			"sdcard": false,
+			"implements": ""
+		},
+		"/Spikes.png": {
+			"sdcard": false,
+			"implements": ""
 		}
 	}
 }

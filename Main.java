@@ -8,10 +8,12 @@ import femto.font.TIC80;
 import Tor;
 import Ghoul;
 import Bat;
+import Spikes;
 
 import Door;
 
 import DungeonBackground;
+import FrontBackground;
 
 import Platform;
 
@@ -19,15 +21,17 @@ class Main extends State {
 
     HiRes16Color screen; // the screenmode we want to draw with
 
-    boolean jump = false, dashing = false, dashReady = true, ghoulDead = false;
+    boolean jump = false, dashing = false, dashReady = true, ghoulDead = false, intro = true;
     Tor tor;
     Ghoul ghoul;
     Bat[] bats;
+    Spikes spike;
     boolean[] batDead;
     
     Door door;
     
     DungeonBackground dungeonBackground;
+    FrontBackground frontBackground;
     
     Platform platform;
     
@@ -60,6 +64,10 @@ class Main extends State {
         ghoul.x = 220;
         ghoul.y = Math.random(40, 110);
         
+        initSpike();
+        
+        frontBackground = new FrontBackground();
+
         difficulty = 1;
         nextDifficulty = 500;
         initBats(difficulty);
@@ -68,6 +76,7 @@ class Main extends State {
         
         door = new Door();
         door.closed();
+        door.x = 220;
         door.y = 0;
 
         platform = new Platform();
@@ -94,6 +103,7 @@ class Main extends State {
     }
     
     void initBats(int diff){
+        if(diff > 30) diff = 30;
         bats = new Bat[diff];
         batDead = new boolean[diff];
         int baty = Math.random(0, 100);
@@ -104,6 +114,13 @@ class Main extends State {
             bats[i].fly();
             batDead[i] = false;
         }
+    }
+    
+    void initSpike(){
+        spike = new Spikes();
+        spike.x = Math.random(220, 400);
+        spike.y = Math.random(-5, 6) > 0 ? 0 : 124;
+        spike.idle();
     }
     
     void generateCoffeeDrops( int y ){
@@ -127,17 +144,41 @@ class Main extends State {
         if(distance > nextDifficulty) {
             difficulty++;
             nextDifficulty += 1000;
-            System.out.println(nextDifficulty);
             door.x = 220;
             door.closed();
         }
         //Dungeon background
         dgnX -= 1+speed;
-        if(dgnX <= -220) dgnX = 0;
-        dungeonBackground.draw(screen, dgnX-220, 0);
-        dungeonBackground.draw(screen, dgnX, 0);
-        dungeonBackground.draw(screen, dgnX+220, 0);
+        if(dgnX <= -220) {
+            dgnX = 0;
+            intro = false;   
+        }
+        if(dgnX > -220 && intro){
+            frontBackground.draw(screen, dgnX, 0);
+            dungeonBackground.draw(screen, dgnX+220, 0);
+        }else{
+            dungeonBackground.draw(screen, dgnX-220, 0);
+            dungeonBackground.draw(screen, dgnX, 0);
+            dungeonBackground.draw(screen, dgnX+220, 0);
+        }
         //END Dungeon background
+        
+        //SPIKES
+        if(difficulty >= 10){
+            spike.x -= 1+speed;
+            
+            if(spike.x < -140){
+                initSpike();
+            } 
+            if(spike.y == 0){
+                spike.setFlipped(true);
+            }else{
+                spike.setFlipped(false);
+            }
+            
+            spike.draw(screen);
+        }
+        //END SPIKES
         
         //GHOUL
         ghoul.x-=1+speed;
@@ -254,12 +295,10 @@ class Main extends State {
                     ghoul.dead();
                     ghoulDead = true;
                     kills++;
-                    System.out.println("TOR KILL GHOUL!");
                 }else{
                     if(torHurt <= 0 && !ghoulDead){
                         torHits-=1;
                         torHurt = 150;
-                        System.out.println("GHOUL ATTACK!");
                     }
                 }
             }
@@ -338,15 +377,16 @@ class Main extends State {
                 case 0:
                     powerReady = -1;
                     quantity = 0;
-                    dashCharge += 10;
+                    if(dashCharge < 200) dashCharge += 10;
+                    dashTime = dashCharge;
                     break;
                 case 1:
-                    torMaxJump++;
+                    if(torMaxJump < 50) torMaxJump++;
                     torJump = torMaxJump;
                     powerReady = -1;
                     break;
                 case 2:
-                    torHits++;
+                    if(torHits < 20) torHits++;
                     powerReady = -1;
                     break;
                 default:
