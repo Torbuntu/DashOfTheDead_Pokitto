@@ -291,6 +291,32 @@
 		"/Platform.png": {
 			"sdcard": false,
 			"implements": ""
+		},
+		"/JavaDashOfTheDead.bin.1.png": {
+			"sdcard": false,
+			"implements": ""
+		},
+		"/Bat.aseprite": {
+			"sdcard": false
+		},
+		"/Bat.json": {
+			"implements": "",
+			"sdcard": false
+		},
+		"/Bat.png": {
+			"implements": "",
+			"sdcard": false
+		},
+		"/Door.aseprite": {
+			"sdcard": false
+		},
+		"/Door.json": {
+			"implements": "",
+			"sdcard": false
+		},
+		"/Door.png": {
+			"implements": "",
+			"sdcard": false
 		}
 	}
 }

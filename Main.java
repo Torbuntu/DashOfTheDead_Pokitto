@@ -7,6 +7,10 @@ import femto.font.TIC80;
 
 import Tor;
 import Ghoul;
+import Bat;
+
+import Door;
+
 import DungeonBackground;
 
 import Platform;
@@ -18,14 +22,19 @@ class Main extends State {
     boolean jump = false, dashing = false, dashReady = true, ghoulDead = false;
     Tor tor;
     Ghoul ghoul;
+    Bat[] bats;
+    boolean[] batDead;
+    
+    Door door;
+    
     DungeonBackground dungeonBackground;
     
     Platform platform;
     
     float dxs, dys, torGravity;
-    int dashTime, dashCharge, speed, torSpeed, powerReady, torHits, torMaxJump, torJump, dgnX, torHurt, distance;
+    int dashTime, dashCharge, speed, torSpeed, powerReady, torHits, torMaxJump, torJump, dgnX, torHurt, distance, kills;
     
-    int quantity, coffeeY;
+    int quantity, coffeeY, difficulty, nextDifficulty;
     int[] coffees;
 
     // start the game using Main as the initial state
@@ -39,18 +48,27 @@ class Main extends State {
     void init(){
         screen = new HiRes16Color(JavaDashPalette.palette(), TIC80.font());
 
+        kills = 0;
+
         tor = new Tor();
         tor.y = 100;
         tor.x = 32;
         tor.run();
         
         ghoul = new Ghoul();
-        ghoul.x = 220;
-        ghoul.y = Math.random(40, 120);
         ghoul.grab();
+        ghoul.x = 220;
+        ghoul.y = Math.random(40, 110);
         
+        difficulty = 1;
+        nextDifficulty = 500;
+        initBats(difficulty);
         dungeonBackground = new DungeonBackground();
         dgnX = 0;
+        
+        door = new Door();
+        door.closed();
+        door.y = 0;
 
         platform = new Platform();
         platform.idle();
@@ -75,6 +93,19 @@ class Main extends State {
         generateCoffeeDrops(y);
     }
     
+    void initBats(int diff){
+        bats = new Bat[diff];
+        batDead = new boolean[diff];
+        int baty = Math.random(0, 100);
+        for(int i = 0; i < diff; i++){
+            bats[i] = new Bat();
+            bats[i].x = 300 + i * 16;
+            bats[i].y = baty + Math.random(-16, 16);
+            bats[i].fly();
+            batDead[i] = false;
+        }
+    }
+    
     void generateCoffeeDrops( int y ){
         coffees = new int[6];
         int start = Math.random(220, 230);
@@ -93,7 +124,13 @@ class Main extends State {
     void update(){
         screen.clear(0);
         distance+=1+speed;
-        
+        if(distance > nextDifficulty) {
+            difficulty++;
+            nextDifficulty += 1000;
+            System.out.println(nextDifficulty);
+            door.x = 220;
+            door.closed();
+        }
         //Dungeon background
         dgnX -= 1+speed;
         if(dgnX <= -220) dgnX = 0;
@@ -106,18 +143,22 @@ class Main extends State {
         ghoul.x-=1+speed;
         if(ghoul.x <= -20){
             ghoul.x = Math.random(220, 600);
-            ghoul.y = Math.random(50, 120);
+            ghoul.y = Math.random(50, 100);
             if(platform.x < ghoul.x + ghoul.width() &&
                 platform.x + platform.width() > ghoul.x &&
                 platform.y < ghoul.y + ghoul.height()-8 &&
                 platform.y + platform.height() > ghoul.y){
-                ghoul.y += 30;
+                ghoul.x += 100;
             }
             ghoul.grab();
             ghoulDead = false;
         }
         ghoul.draw(screen);
         //END GHOUL
+        
+        //BAT
+        updateBats();
+        //END BAT
         
         //START PLATFORM
         platform.x -= 1+speed;
@@ -150,12 +191,57 @@ class Main extends State {
 
         drawUpgrades();
         
+        //DOOR
+        if(door.x > -10){
+            door.x -= 1 + speed;
+            if(tor.y > 20 && tor.y + tor.height() < 108 && tor.x+tor.width() > door.x && dashing){
+                door.broken();
+            }
+            door.draw(screen);
+        }
+        //DOOR
+        
         //Draw position
         screen.setTextPosition(0, 0);
         screen.setTextColor(10);
-        screen.print("Distance: "+distance);
+        screen.println("Distance: "+distance);
+        screen.println("Kills: " + kills);
+        screen.println("Coins: ");
 
         screen.flush();
+    }
+
+    void updateBats(){
+        int check = 0;
+        //screen.drawRect(tor.x, tor.y + 4, tor.width(), tor.height() - 4, 5, false);
+        for(int i = 0; i < bats.length; i++){
+            if(bats[i].x < -10) check++;
+            if(!batDead[i]) {
+                bats[i].x -= 2+speed;
+            }else{
+                bats[i].x -= 1+speed;
+            }
+            //screen.drawRect(bats[i].x, bats[i].y, bats[i].width(), bats[i].height(), 5, false);
+            if(tor.x < bats[i].x + bats[i].width() &&
+                tor.x + tor.width() > bats[i].x &&
+                tor.y + 4 < bats[i].y + bats[i].height() &&
+                tor.y + 4 + tor.height() - 4 > bats[i].y){
+                if(dashing && !batDead[i]){
+                    bats[i].x += Math.random(16, 23);
+                    bats[i].y += Math.random(-10, 10);
+                    bats[i].dead();
+                    batDead[i] = true;
+                    kills++;
+                }else if (torHurt <= 0 && !batDead[i]){
+                    torHurt = 150;
+                    torHits-=1;
+                }
+            }
+        
+            bats[i].draw(screen);
+        }
+        
+        if(check >= bats.length) initBats(difficulty);
     }
     
     void checkGhoulGrabTor(){
@@ -164,9 +250,10 @@ class Main extends State {
             tor.y+4 < ghoul.y + ghoul.height()-8 &&
             tor.y+4 + tor.height()-8 > ghoul.y)
             {
-                if(dashing){
+                if(dashing && !ghoulDead){
                     ghoul.dead();
                     ghoulDead = true;
+                    kills++;
                     System.out.println("TOR KILL GHOUL!");
                 }else{
                     if(torHurt <= 0 && !ghoulDead){
@@ -200,7 +287,7 @@ class Main extends State {
                 if(!Button.Down.isPressed() ){
                     dys = 0;
                     torJump = torMaxJump;
-                    if(!dashing)tor.run();
+                    if(!dashing )tor.run();
                     return true;
                 }
                
@@ -245,7 +332,7 @@ class Main extends State {
             dashing = true;
             tor.dash();
         }
-        
+
         if(Button.C.justPressed()){
             switch(powerReady){
                 case 0:
@@ -267,11 +354,11 @@ class Main extends State {
             }
         }
         
-        if(!Button.B.isPressed()){
-            if(dashing){
-                dashing = false;
-                tor.jump();
-            }
+        
+        
+        if(!Button.B.isPressed() && dashing){
+            dashing = false;
+            tor.jump();
         }
         //END Input
         
