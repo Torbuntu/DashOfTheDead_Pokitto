@@ -1,0 +1,27 @@
+{ "frames": {
+   "Spikes.aseprite": {
+    "frame": { "x": 0, "y": 0, "w": 128, "h": 8 },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": { "x": 0, "y": 0, "w": 128, "h": 8 },
+    "sourceSize": { "w": 128, "h": 8 },
+    "duration": 100
+   }
+ },
+ "meta": {
+  "app": "http://www.aseprite.org/",
+  "version": "1.2.15-x64",
+  "image": "Spikes.png",
+  "format": "RGBA8888",
+  "size": { "w": 128, "h": 8 },
+  "scale": "1",
+  "frameTags": [
+   { "name": "idle", "from": 0, "to": 0, "direction": "forward" }
+  ],
+  "layers": [
+   { "name": "Layer 1", "opacity": 255, "blendMode": "normal" }
+  ],
+  "slices": [
+  ]
+ }
+}

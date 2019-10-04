@@ -332,6 +332,86 @@
 		"/Spikes.png": {
 			"sdcard": false,
 			"implements": ""
+		},
+		"/enemies": {
+			"sdcard": false
+		},
+		"/backgrounds/Door.aseprite": {
+			"sdcard": false
+		},
+		"/backgrounds/Door.json": {
+			"sdcard": false,
+			"implements": ""
+		},
+		"/backgrounds/Door.png": {
+			"sdcard": false,
+			"implements": ""
+		},
+		"/backgrounds/DungeonBackground.aseprite": {
+			"sdcard": false
+		},
+		"/backgrounds/DungeonBackground.png": {
+			"sdcard": false,
+			"implements": ""
+		},
+		"/backgrounds/FrontBackground.png": {
+			"sdcard": false,
+			"implements": ""
+		},
+		"/backgrounds/Platform.aseprite": {
+			"sdcard": false
+		},
+		"/backgrounds/Platform.json": {
+			"sdcard": false,
+			"implements": ""
+		},
+		"/backgrounds/Platform.png": {
+			"sdcard": false,
+			"implements": ""
+		},
+		"/enemies/Bat.aseprite": {
+			"sdcard": false
+		},
+		"/enemies/Bat.json": {
+			"sdcard": false,
+			"implements": ""
+		},
+		"/enemies/Bat.png": {
+			"sdcard": false,
+			"implements": ""
+		},
+		"/enemies/Ghoul.aseprite": {
+			"sdcard": false
+		},
+		"/enemies/Ghoul.json": {
+			"sdcard": false,
+			"implements": ""
+		},
+		"/enemies/Ghoul.png": {
+			"sdcard": false,
+			"implements": ""
+		},
+		"/enemies/Spikes.aseprite": {
+			"sdcard": false
+		},
+		"/enemies/Spikes.json": {
+			"sdcard": false,
+			"implements": ""
+		},
+		"/enemies/Spikes.png": {
+			"sdcard": false,
+			"implements": ""
+		},
+		"/Coin.aseprite": {
+			"sdcard": false
+		},
+		"/Coin.json": {
+			"sdcard": false,
+			"implements": ""
+		},
+		"/Coin.png": {
+			"sdcard": false,
+			"implements": ""
 		}
 	}
 }

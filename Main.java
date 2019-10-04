@@ -6,16 +6,17 @@ import JavaDashPalette;
 import femto.font.TIC80;
 
 import Tor;
-import Ghoul;
-import Bat;
-import Spikes;
+import Coin;
+import enemies.Ghoul;
+import enemies.Bat;
+import enemies.Spikes;
 
-import Door;
+import backgrounds.Door;
 
-import DungeonBackground;
-import FrontBackground;
+import backgrounds.DungeonBackground;
+import backgrounds.FrontBackground;
 
-import Platform;
+import backgrounds.Platform;
 
 class Main extends State {
 
@@ -28,6 +29,8 @@ class Main extends State {
     Spikes spike;
     boolean[] batDead;
     
+    Coin[] coins;
+    
     Door door;
     
     DungeonBackground dungeonBackground;
@@ -36,7 +39,7 @@ class Main extends State {
     Platform platform;
     
     float dxs, dys, torGravity;
-    int dashTime, dashCharge, speed, torSpeed, powerReady, torHits, torMaxJump, torJump, dgnX, torHurt, distance, kills;
+    int dashTime, dashCharge, speed, torSpeed, powerReady, torHits, torMaxJump, torJump, dgnX, torHurt, torCoins, distance, kills;
     
     int quantity, coffeeY, difficulty, nextDifficulty;
     int[] coffees;
@@ -53,6 +56,7 @@ class Main extends State {
         screen = new HiRes16Color(JavaDashPalette.palette(), TIC80.font());
 
         kills = 0;
+        torCoins = 0;
 
         tor = new Tor();
         tor.y = 100;
@@ -65,6 +69,7 @@ class Main extends State {
         ghoul.y = Math.random(40, 110);
         
         initSpike();
+        initCoins();
         
         frontBackground = new FrontBackground();
 
@@ -123,6 +128,18 @@ class Main extends State {
         spike.idle();
     }
     
+    void initCoins(){
+        coins = new Coin[20];
+        int coiny = Math.random(18, 110);
+        int startx = Math.random(400, 500);
+        for(int i = 0; i < 20; i++){
+            coins[i] = new Coin();
+            coins[i].coin();
+            coins[i].x = startx + i*8; 
+            coins[i].y = coiny + Math.random(-4, 4);
+        }
+    }
+    
     void generateCoffeeDrops( int y ){
         coffees = new int[6];
         int start = Math.random(220, 230);
@@ -177,6 +194,15 @@ class Main extends State {
             }
             
             spike.draw(screen);
+            
+            if(tor.x < spike.x + spike.width() &&
+                tor.x + tor.width() > spike.x &&
+                tor.y + 4 < spike.y + spike.height() &&
+                tor.y + 4 + tor.height() - 4 > spike.y){
+                    torHurt = 150;
+                    torHits-=1;
+                    //SO DEAD. GameOver if touch any spikes.
+                }
         }
         //END SPIKES
         
@@ -218,7 +244,7 @@ class Main extends State {
         
         updateTor();
 
-        if(torHurt > 0)torHurt--;
+        if(torHurt >= 0)torHurt--;
         checkGhoulGrabTor();
 
         drawPowerBox();
@@ -229,6 +255,8 @@ class Main extends State {
         checkCoffeeCollect();
         updateCoffeeDrops();
         drawCoffeeDrops();
+        
+        updateCoins();
 
         drawUpgrades();
         
@@ -247,9 +275,28 @@ class Main extends State {
         screen.setTextColor(10);
         screen.println("Distance: "+distance);
         screen.println("Kills: " + kills);
-        screen.println("Coins: ");
+        screen.println("Coins: " + torCoins);
 
         screen.flush();
+    }
+
+    void updateCoins(){
+        int check  = 0;
+        for(int i = 0; i < 20; i++){
+            coins[i].x -= 1+speed;
+            coins[i].y += Math.random(-1, 2);
+            coins[i].draw(screen);
+            if(coins[i].x < -100)check++;
+            
+            if(tor.x < coins[i].x + coins[i].width() &&
+                tor.x + tor.width() > coins[i].x &&
+                tor.y + 4 < coins[i].y + coins[i].height() &&
+                tor.y + 4 + tor.height() - 4 > coins[i].y){
+                    coins[i].x = -200;
+                    torCoins++;
+                }
+        }
+        if(check == 20) initCoins();
     }
 
     void updateBats(){
@@ -326,7 +373,7 @@ class Main extends State {
                 if(!Button.Down.isPressed() ){
                     dys = 0;
                     torJump = torMaxJump;
-                    if(!dashing )tor.run();
+                    if(!dashing && torHurt <= 0)tor.run();
                     return true;
                 }
                
@@ -354,7 +401,7 @@ class Main extends State {
                 tor.y = 100;
                 jump = false;
                 torJump = torMaxJump;
-                if(!dashing)tor.run();
+                if(!dashing && torHurt <= 0)tor.run();
             }
         }
 
@@ -366,7 +413,7 @@ class Main extends State {
             tor.jump();
         }
         
-        if(Button.B.isPressed() && dashTime > 0 && dashReady){
+        if(Button.B.isPressed() && dashTime > 0 && dashReady && torHurt <= 0){
             dashTime--;
             dashing = true;
             tor.dash();
@@ -396,7 +443,7 @@ class Main extends State {
         
         
         
-        if(!Button.B.isPressed() && dashing){
+        if(!Button.B.isPressed() && dashing && torHurt <= 0){
             dashing = false;
             tor.jump();
         }
@@ -410,11 +457,13 @@ class Main extends State {
             }
         }
         
-        if(dashTime <= 0 ){
+        if(dashTime <= 0 && torHurt <= 0){
             dashing = false;
             dashReady = false;
             tor.jump();
         }
+        
+        if(torHurt >= 0) tor.hurtRun();
         
         tor.y += dys;
         tor.draw(screen); // Animation is updated automatically
