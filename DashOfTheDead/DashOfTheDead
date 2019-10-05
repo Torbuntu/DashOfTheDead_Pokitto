@@ -1,0 +1,3 @@
+#!/bin/bash
+
+./PokittoEmu JavaDashOfTheDead.bin

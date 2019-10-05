@@ -194,15 +194,11 @@ class Main extends State {
             }
             
             spike.draw(screen);
-            
-            if(tor.x < spike.x + spike.width() &&
-                tor.x + tor.width() > spike.x &&
-                tor.y + 4 < spike.y + spike.height() &&
-                tor.y + 4 + tor.height() - 4 > spike.y){
-                    torHurt = 150;
-                    torHits-=1;
-                    //SO DEAD. GameOver if touch any spikes.
-                }
+            if(collidesWithTor(spike.x, spike.y, spike.width(), spike.height())){
+                torHurt = 150;
+                torHits-=1;
+                //SO DEAD. GameOver if touch any spikes.
+            }
         }
         //END SPIKES
         
@@ -213,9 +209,9 @@ class Main extends State {
             ghoul.y = Math.random(50, 100);
             if(platform.x < ghoul.x + ghoul.width() &&
                 platform.x + platform.width() > ghoul.x &&
-                platform.y < ghoul.y + ghoul.height()-8 &&
+                platform.y < ghoul.y + ghoul.height() &&
                 platform.y + platform.height() > ghoul.y){
-                ghoul.x += 100;
+                ghoul.x += 160;
             }
             ghoul.grab();
             ghoulDead = false;
@@ -243,7 +239,6 @@ class Main extends State {
         else speed = 1;
         
         updateTor();
-
         if(torHurt >= 0)torHurt--;
         checkGhoulGrabTor();
 
@@ -279,6 +274,11 @@ class Main extends State {
 
         screen.flush();
     }
+    
+    boolean collidesWithTor(float x, float y, float width, float height){
+        return tor.x + 4 < x + width && tor.x + 4 + tor.width() - 8 > x 
+                && tor.y + 4 < y + height && tor.y + 4 + tor.height() - 8 > y;
+    }
 
     void updateCoins(){
         int check  = 0;
@@ -287,21 +287,16 @@ class Main extends State {
             coins[i].y += Math.random(-1, 2);
             coins[i].draw(screen);
             if(coins[i].x < -100)check++;
-            
-            if(tor.x < coins[i].x + coins[i].width() &&
-                tor.x + tor.width() > coins[i].x &&
-                tor.y + 4 < coins[i].y + coins[i].height() &&
-                tor.y + 4 + tor.height() - 4 > coins[i].y){
-                    coins[i].x = -200;
-                    torCoins++;
-                }
+            if(collidesWithTor(coins[i].x, coins[i].y, coins[i].width(), coins[i].height())){
+                coins[i].x = -200;
+                torCoins++;
+            }
         }
         if(check == 20) initCoins();
     }
 
     void updateBats(){
         int check = 0;
-        //screen.drawRect(tor.x, tor.y + 4, tor.width(), tor.height() - 4, 5, false);
         for(int i = 0; i < bats.length; i++){
             if(bats[i].x < -10) check++;
             if(!batDead[i]) {
@@ -309,11 +304,7 @@ class Main extends State {
             }else{
                 bats[i].x -= 1+speed;
             }
-            //screen.drawRect(bats[i].x, bats[i].y, bats[i].width(), bats[i].height(), 5, false);
-            if(tor.x < bats[i].x + bats[i].width() &&
-                tor.x + tor.width() > bats[i].x &&
-                tor.y + 4 < bats[i].y + bats[i].height() &&
-                tor.y + 4 + tor.height() - 4 > bats[i].y){
+            if(collidesWithTor(bats[i].x, bats[i].y, bats[i].width(), bats[i].height())){
                 if(dashing && !batDead[i]){
                     bats[i].x += Math.random(16, 23);
                     bats[i].y += Math.random(-10, 10);
@@ -333,29 +324,24 @@ class Main extends State {
     }
     
     void checkGhoulGrabTor(){
-        if(tor.x < ghoul.x + ghoul.width() &&
-            tor.x + tor.width() > ghoul.x &&
-            tor.y+4 < ghoul.y + ghoul.height()-8 &&
-            tor.y+4 + tor.height()-8 > ghoul.y)
-            {
-                if(dashing && !ghoulDead){
-                    ghoul.dead();
-                    ghoulDead = true;
-                    kills++;
-                }else{
-                    if(torHurt <= 0 && !ghoulDead){
-                        torHits-=1;
-                        torHurt = 150;
-                    }
+        // screen.drawRect(ghoul.x, ghoul.y, ghoul.width(), ghoul.height()-8, 10, false);
+        if(collidesWithTor(ghoul.x, ghoul.y, ghoul.width(), ghoul.height()-8)){
+            if(dashing && !ghoulDead){
+                ghoul.dead();
+                ghoulDead = true;
+                kills++;
+            }else{
+                if(torHurt <= 0 && !ghoulDead){
+                    torHits-=1;
+                    torHurt = 150;
                 }
             }
+        }
     }
     
     void checkCoffeeCollect(){
         for(int x = 0; x < 6; x++){
-            if(tor.x < coffees[x] + 4 && tor.x + tor.width() > coffees[x] &&
-                tor.y + 4 < coffeeY + 6 && tor.y + 4 + tor.height() - 4 > coffeeY)
-            {
+            if(collidesWithTor(coffees[x], coffeeY, 4, 6)){
                 quantity++;
                 coffees[x] = -20;
             }
@@ -366,7 +352,6 @@ class Main extends State {
         if(dys < 0.0)return false;//jumping
         if(tor.x < platform.x + platform.width() &&
             tor.x + tor.width() > platform.x &&
-            
             tor.y + tor.height()-6 + dys< platform.y+10 &&
             tor.y + tor.height()-6 + dys > platform.y+3)
             {

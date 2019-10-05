@@ -412,6 +412,16 @@
 		"/Coin.png": {
 			"sdcard": false,
 			"implements": ""
+		},
+		"/DashOfTheDead": {},
+		"/DashOfTheDead/DashOfTheDead": {
+			"sdcard": false
+		},
+		"/DashOfTheDead/JavaDashOfTheDead.bin": {
+			"sdcard": false
+		},
+		"/DashOfTheDead/PokittoEmu": {
+			"sdcard": false
 		}
 	}
 }
