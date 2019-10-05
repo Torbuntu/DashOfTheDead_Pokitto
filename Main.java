@@ -7,6 +7,7 @@ import femto.font.TIC80;
 
 import Tor;
 import Coin;
+import Coffee;
 import enemies.Ghoul;
 import enemies.Bat;
 import enemies.Spikes;
@@ -22,89 +23,106 @@ class Main extends State {
 
     HiRes16Color screen; // the screenmode we want to draw with
 
-    boolean jump = false, dashing = false, dashReady = true, ghoulDead = false, intro = true;
+    boolean jump = false, dashing = false, dashReady = true, ghoulDead = false, intro = true, preStart = true;
     Tor tor;
+    Coffee coffee;
     Ghoul ghoul;
     Bat[] bats;
     Spikes spike;
     boolean[] batDead;
-    
     Coin[] coins;
-    
     Door door;
-    
     DungeonBackground dungeonBackground;
     FrontBackground frontBackground;
-    
     Platform platform;
     
     float dxs, dys, torGravity;
-    int dashTime, dashCharge, speed, torSpeed, powerReady, torHits, torMaxJump, torJump, dgnX, torHurt, torCoins, distance, kills;
+    int dashTime, dashCharge, speed, powerReady, torHits, torMaxJump, torJump, dgnX, torHurt, distance, kills;
     
-    int quantity, coffeeY, difficulty, nextDifficulty;
-    int[] coffees;
+    int difficulty, nextDifficulty, cooldown;
+    
+    
+    static int torCoins;
+    //prestart screen variables
+    int cursor, shopCharge, shopJump, shopHits;
+    boolean tailor = false;
 
-    // start the game using Main as the initial state
-    // and TIC80 as the menu's font
     public static void main(String[] args){
         Game.run( TIC80.font(), new Main() );
     }
     
-    // Avoid allocation in a State's constructor.
-    // Allocate on init instead.
     void init(){
         screen = new HiRes16Color(JavaDashPalette.palette(), TIC80.font());
-
-        kills = 0;
+        cursor =0;
+        shopCharge = 50;
+        shopJump = 1;
+        shopHits = 3;
+        
         torCoins = 0;
 
         tor = new Tor();
+        
+        ghoul = new Ghoul();
+
+        frontBackground = new FrontBackground();
+        dungeonBackground = new DungeonBackground();
+        
+        door = new Door();
+        
+        platform = new Platform();
+        platform.idle();
+
+        coffee = new Coffee();
+        coffee.idle();
+        
+        subInit(50, 1, 3);
+    }
+    
+    void subInit(int sDashCharge, int sTorJump, int sTorHit){
+        
+        difficulty = 1;
+        nextDifficulty = 500;
+        distance = 0;
+        powerReady = -1;
+        kills = 0;
+        cooldown = 75;
+        dgnX = 0;
+        
+        dashCharge = sDashCharge;
+        dashTime = dashCharge;
+        speed = 1;
+        
+        torGravity = 0.2;
+        torHits = sTorHit;
+        torMaxJump = sTorJump;
+        torJump = torMaxJump;
+        torHurt = 0;
+        
+        initSpike();
+        initCoins();
+        initBats(difficulty);
+        generateCoffeeDrops();
+        
+        //objects
         tor.y = 100;
         tor.x = 32;
         tor.run();
         
-        ghoul = new Ghoul();
         ghoul.grab();
         ghoul.x = 220;
         ghoul.y = Math.random(40, 110);
         
-        initSpike();
-        initCoins();
-        
-        frontBackground = new FrontBackground();
-
-        difficulty = 1;
-        nextDifficulty = 500;
-        initBats(difficulty);
-        dungeonBackground = new DungeonBackground();
-        dgnX = 0;
-        
-        door = new Door();
         door.closed();
         door.x = 220;
         door.y = 0;
-
-        platform = new Platform();
-        platform.idle();
+        
         platform.x = 220;
         platform.y = Math.random(38, 100);
-
-        dashTime = 0;
-        dashCharge = 50;
-        speed = 1;
-        torSpeed = 0;
-        torGravity = 0.2;
-        torHits = 3;
-        torMaxJump = 1;
-        torJump = 1;
-        torHurt = 0;
         
-        distance = 0;
-
-        quantity = 0;
-        powerReady = -1;
-        int y = Math.random(70, 120);
-        generateCoffeeDrops(y);
+        intro = true;
+        shopCharge = 50;
+        shopJump = 1;
+        shopHits = 3;
     }
     
     void initBats(int diff){
@@ -140,13 +158,9 @@ class Main extends State {
         }
     }
     
-    void generateCoffeeDrops( int y ){
-        coffees = new int[6];
-        int start = Math.random(220, 230);
-        for(int i = 0; i < 6; i++){
-            coffees[i] = 8*i+start;
-        }
-        coffeeY = y;
+    void generateCoffeeDrops(){
+        coffee.x = Math.random(220, 230);
+        coffee.y = Math.random(30, 120);
     }
     
     // Might help in certain situations
@@ -154,9 +168,46 @@ class Main extends State {
         screen = null;
     }
     
+    void updateShop(){
+        screen.setTextPosition(0, 0);
+        screen.setTextColor(6);
+        screen.println("Press [C] to start.");
+        screen.println("Coins: " + torCoins);
+        if(Button.Up.justPressed()) {
+            tailor = true;
+            cursor = 0;
+        }
+        if(Button.Down.justPressed()){
+            tailor = false;
+            cursor = 0;
+        } 
+        
+        if(tailor){
+            screen.drawRect(50, 50, 20, 20, 10, false);
+        }else{
+            screen.drawRect(50, 50, 20, 20, 5, false);
+        }
+        
+        
+        if(Button.C.justPressed()) {
+            preStart = false;
+            subInit(shopCharge, shopJump, shopHits);
+        }
+        screen.flush();
+    }
+    
     // update is called by femto.Game every frame
     void update(){
         screen.clear(0);
+        
+        
+        if(preStart){
+            updateShop();
+            return;
+        }
+        
+        if(torHits <= 0) preStart = true;
+        
         distance+=1+speed;
         if(distance > nextDifficulty) {
             difficulty++;
@@ -195,7 +246,7 @@ class Main extends State {
             
             spike.draw(screen);
             if(collidesWithTor(spike.x, spike.y, spike.width(), spike.height())){
-                torHurt = 150;
+                torHurt = cooldown;
                 torHits-=1;
                 //SO DEAD. GameOver if touch any spikes.
             }
@@ -246,7 +297,6 @@ class Main extends State {
         drawTorHits();
         drawJumps();
         
-        updatePower();
         checkCoffeeCollect();
         updateCoffeeDrops();
         drawCoffeeDrops();
@@ -312,7 +362,7 @@ class Main extends State {
                     batDead[i] = true;
                     kills++;
                 }else if (torHurt <= 0 && !batDead[i]){
-                    torHurt = 150;
+                    torHurt = cooldown;
                     torHits-=1;
                 }
             }
@@ -333,18 +383,17 @@ class Main extends State {
             }else{
                 if(torHurt <= 0 && !ghoulDead){
                     torHits-=1;
-                    torHurt = 150;
+                    torHurt = cooldown;
                 }
             }
         }
     }
     
     void checkCoffeeCollect(){
-        for(int x = 0; x < 6; x++){
-            if(collidesWithTor(coffees[x], coffeeY, 4, 6)){
-                quantity++;
-                coffees[x] = -20;
-            }
+        if(collidesWithTor(coffee.x, coffee.y, coffee.width(), coffee.height())){
+            powerReady += 1;
+            if(powerReady >= 3) powerReady = 0;
+            coffee.x = -20;
         }
     }
     
@@ -408,7 +457,6 @@ class Main extends State {
             switch(powerReady){
                 case 0:
                     powerReady = -1;
-                    quantity = 0;
                     if(dashCharge < 200) dashCharge += 10;
                     dashTime = dashCharge;
                     break;
@@ -453,30 +501,16 @@ class Main extends State {
         tor.y += dys;
         tor.draw(screen); // Animation is updated automatically
     }
-    
-    void updatePower(){
-        if(quantity >= 10){
-            powerReady++;
-            quantity = 0;
-        }
-        if(powerReady >= 3) powerReady = 0;
-    }
-    
+
     void updateCoffeeDrops(){
-        int reset = 0;
-        for(int x = 0; x < 6; x++){
-            coffees[x]-= 1+speed;
-            if(coffees[x] < -10) reset++;
-        }
-        if(reset > 5){
-            int y = Math.random(70, 120);
-            generateCoffeeDrops(y);
+        coffee.x-= 1+speed;
+        if(coffee.x < -10){
+            generateCoffeeDrops();
         }
     }
     void drawCoffeeDrops(){
-        for(int x : coffees){
-            screen.fillRect(x, coffeeY, 4, 6, 10);
-        }
+        coffee.y += Math.random(-1, 2);
+        coffee.draw(screen);
     }
     
     void drawUpgrades(){

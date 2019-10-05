@@ -422,6 +422,20 @@
 		},
 		"/DashOfTheDead/PokittoEmu": {
 			"sdcard": false
+		},
+		"/Coffee.aseprite": {
+			"sdcard": false
+		},
+		"/Coffee.json": {
+			"sdcard": false,
+			"implements": ""
+		},
+		"/Coffee.png": {
+			"sdcard": false,
+			"implements": ""
+		},
+		"/JavaDashOfTheDead.bin.2.gif": {
+			"sdcard": false
 		}
 	}
 }
