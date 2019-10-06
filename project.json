@@ -436,6 +436,10 @@
 		},
 		"/JavaDashOfTheDead.bin.2.gif": {
 			"sdcard": false
+		},
+		"/StartBackground.png": {
+			"sdcard": false,
+			"implements": ""
 		}
 	}
 }

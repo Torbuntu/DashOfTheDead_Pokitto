@@ -16,6 +16,7 @@ import backgrounds.Door;
 
 import backgrounds.DungeonBackground;
 import backgrounds.FrontBackground;
+import StartBackground;
 
 import backgrounds.Platform;
 
@@ -34,7 +35,7 @@ class Main extends State {
 
     HiRes16Color screen; // the screenmode we want to draw with
 
-    boolean jump = false, dashing = false, dashReady = true, ghoulDead = false, intro = true, preStart = true;
+    boolean jump = false, dashing = false, dashReady = true, ghoulDead = false, intro = true, preStart = true, coinIntro = true;
     Tor tor;
     Coffee coffee;
     Ghoul ghoul;
@@ -48,15 +49,16 @@ class Main extends State {
     Platform platform;
     
     float dxs, dys, torGravity;
-    int dashTime, speed, powerReady, torJump, dgnX, torHurt, distance, kills;
-    float t, shake;
+    int dashTime, speed, powerReady = 1, torJump, dgnX, torHurt, distance, kills;
+    float t, shake, doorShake;
     int difficulty, nextDifficulty, cooldown, dashCharge = 50, torMaxJump = 1, torHits = 3 ;
     
     static int torCoins;
     //prestart screen variables
     int cursor, shopCharge = 50, shopJump = 1, shopHits = 3;
     boolean tailor = false;
-    
+    int sbx = 0;
+    StartBackground startBackground;
     
     //title screen variables
     boolean title = true;
@@ -77,6 +79,7 @@ class Main extends State {
 
         frontBackground = new FrontBackground();
         dungeonBackground = new DungeonBackground();
+        startBackground = new StartBackground();
         
         door = new Door();
         
@@ -131,6 +134,9 @@ class Main extends State {
         
         t = 0.0f;
         shake = 0.0f;
+        doorShake = 0.0f;
+        
+        arrowCoins();
     }
     
     void initBats(int diff){
@@ -166,6 +172,45 @@ class Main extends State {
         }
     }
     
+    void arrowCoins(){
+        coins = new Coin[12];
+        for(int i = 0; i < 12; i++){
+            coins[i] = new Coin();
+            coins[i].coin();
+        }
+        
+        coins[0].x = 160;
+        coins[0].y = 75;
+        
+        coins[1].x = 170;
+        coins[1].y = 75;
+        
+        coins[2].x = 180;
+        coins[2].y = 75;
+        
+        coins[9].x = 190;
+        coins[9].y = 59;
+        coins[6].x = 190;
+        coins[6].y = 67;
+        coins[3].x = 190;
+        coins[3].y = 75;
+        coins[7].x = 190;
+        coins[7].y = 83;
+        coins[8].x = 190;
+        coins[8].y = 91;
+        
+        coins[10].x = 200;
+        coins[10].y = 67;
+        coins[11].x = 200;
+        coins[11].y = 83;
+        coins[4].x = 200;
+        coins[4].y = 75;
+        
+        coins[5].x = 210;
+        coins[5].y = 75;
+
+    }
+    
     void generateCoffeeDrops(){
         coffee.x = Math.random(220, 230);
         coffee.y = Math.random(30, 120);
@@ -177,63 +222,53 @@ class Main extends State {
     }
     
     void updateShop(){
+        sbx -= 1;
+        if(sbx <= -220) sbx = 0;
+        startBackground.draw(screen, sbx, 0);
+        startBackground.draw(screen, sbx+220, 0);
         screen.setTextPosition(0, 0);
         screen.setTextColor(6);
         screen.println("Press [C] to start.");
         screen.println("Coins: " + torCoins);
-        if(Button.Up.justPressed()) {
-            tailor = true;
-            cursor = 0;
-        }
-        if(Button.Down.justPressed()){
-            tailor = false;
-            cursor = 0;
-            powerReady = 0;
-        } 
+
+        drawUpgrades();
+        drawPowerBox();
+        drawTorHits();
+        drawJumps();
         
-        if(tailor){
-            screen.drawRect(50, 50, 20, 20, 10, false);
-        }else{
-            screen.drawRect(50, 50, 20, 20, 5, false);
-            drawUpgrades();
-            drawPowerBox();
-            drawTorHits();
-            drawJumps();
-            
-            if(Button.Right.justPressed()){
-                if(powerReady == 2) powerReady = 0;
-                else powerReady++;
-            }
-            if(Button.Left.justPressed()){
-                if(powerReady == 0) powerReady = 2;
-                else powerReady--;
-            }
-            
-            if(Button.A.justPressed()){
-                switch(powerReady){
-                    case 0:
-                        if(dashCharge < 200) dashCharge += 10;
-                        dashTime = dashCharge;
-                        break;
-                    case 1:
-                        if(torMaxJump < 50) torMaxJump++;
-                        torJump = torMaxJump;
-                        break;
-                    case 2:
-                        if(torHits < 20) torHits++;
-                        break;
-                    default:
-                        break;
-                }
-            }
+        if(Button.Right.justPressed()){
+            if(powerReady == 2) powerReady = 0;
+            else powerReady++;
+        }
+        if(Button.Left.justPressed()){
+            if(powerReady == 0) powerReady = 2;
+            else powerReady--;
         }
         
-        
+        if(Button.A.justPressed()){
+            switch(powerReady){
+                case 0:
+                    if(dashCharge < 200) dashCharge += 10;
+                    dashTime = dashCharge;
+                    break;
+                case 1:
+                    if(torMaxJump < 20) torMaxJump++;
+                    torJump = torMaxJump;
+                    break;
+                case 2:
+                    if(torHits < 20) torHits++;
+                    break;
+                default:
+                    break;
+            }
+        }
+    
         if(Button.C.justPressed()) {
             preStart = false;
             subInit();
         }
-        screen.flush();
+        
+        tor.draw(screen);
     }
     
     void updateTitle(){
@@ -260,6 +295,10 @@ class Main extends State {
         
         if(preStart){
             updateShop();
+            for(Coin c : coins){
+                c.draw(screen);
+            }
+            screen.flush();
             return;
         }
         
@@ -271,7 +310,15 @@ class Main extends State {
                 screen.cameraY = Math.sin(t) * 3;
             }
             shake -= 0.2f;
-        }else{
+        }
+        
+        if(doorShake > 0.0){
+            screen.cameraX = Math.cos(t) * 10;
+            screen.cameraY = Math.sin(t) * 10;
+            doorShake -= 0.2f;
+        }
+        
+        if(doorShake <= 0.0 && shake <= 0.0){
             screen.cameraX = 0;
             screen.cameraY = 0;
         }
@@ -287,6 +334,8 @@ class Main extends State {
             torHits = 3;
             dashCharge = 50;
             dashTime = dashCharge;
+            powerReady = 1;
+            
         }
         
         distance+=1+speed;
@@ -328,8 +377,7 @@ class Main extends State {
             spike.draw(screen);
             if(collidesWithTor(spike.x, spike.y, spike.width(), spike.height())){
                 torHurt = cooldown;
-                torHits-=1;
-                shake = 2.0;
+                torHits = 0;
                 //SO DEAD. GameOver if touch any spikes.
             }
         }
@@ -392,6 +440,7 @@ class Main extends State {
             door.x -= 1 + speed;
             if(tor.y > 20 && tor.y + tor.height() < 108 && tor.x+tor.width() > door.x && dashing){
                 door.broken();
+                doorShake = 3.0f;
             }
             door.draw(screen);
         }
@@ -414,7 +463,7 @@ class Main extends State {
 
     void updateCoins(){
         int check  = 0;
-        for(int i = 0; i < 20; i++){
+        for(int i = 0; i < coins.length; i++){
             coins[i].x -= 1+speed;
             coins[i].y += Math.random(-1, 2);
             coins[i].draw(screen);
@@ -626,13 +675,13 @@ class Main extends State {
     
     void drawTorHits(){
         for(int j = 0; j < torHits; j++){
-            screen.drawCircle(10*j+10, 163, 2, 5);
+            screen.drawCircle(10*j+10, 170, 2, 5);
         }
     }
     
     void drawJumps(){
         for(int i = 0; i < torJump; i++){
-            screen.drawCircle(4*i+9, 170, 1, 10);
+            screen.drawCircle(10*i+10, 162, 2, 10);
         }
     }
 
