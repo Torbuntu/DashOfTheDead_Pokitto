@@ -19,7 +19,18 @@ import backgrounds.FrontBackground;
 
 import backgrounds.Platform;
 
+class HighScore extends femto.Cookie {
+    HighScore(){
+        super();
+        begin("DDScore");
+    }
+    int score;
+}
+
+
 class Main extends State {
+
+    static final var save = new HighScore();
 
     HiRes16Color screen; // the screenmode we want to draw with
 
@@ -37,15 +48,18 @@ class Main extends State {
     Platform platform;
     
     float dxs, dys, torGravity;
-    int dashTime, dashCharge, speed, powerReady, torHits, torMaxJump, torJump, dgnX, torHurt, distance, kills;
-    
-    int difficulty, nextDifficulty, cooldown;
-    
+    int dashTime, speed, powerReady, torJump, dgnX, torHurt, distance, kills;
+    float t, shake;
+    int difficulty, nextDifficulty, cooldown, dashCharge = 50, torMaxJump = 1, torHits = 3 ;
     
     static int torCoins;
     //prestart screen variables
-    int cursor, shopCharge, shopJump, shopHits;
+    int cursor, shopCharge = 50, shopJump = 1, shopHits = 3;
     boolean tailor = false;
+    
+    
+    //title screen variables
+    boolean title = true;
 
     public static void main(String[] args){
         Game.run( TIC80.font(), new Main() );
@@ -53,10 +67,7 @@ class Main extends State {
     
     void init(){
         screen = new HiRes16Color(JavaDashPalette.palette(), TIC80.font());
-        cursor =0;
-        shopCharge = 50;
-        shopJump = 1;
-        shopHits = 3;
+        cursor = 0;
         
         torCoins = 0;
 
@@ -75,10 +86,10 @@ class Main extends State {
         coffee = new Coffee();
         coffee.idle();
         
-        subInit(50, 1, 3);
+        subInit();
     }
     
-    void subInit(int sDashCharge, int sTorJump, int sTorHit){
+    void subInit(){
         
         difficulty = 1;
         nextDifficulty = 500;
@@ -88,13 +99,10 @@ class Main extends State {
         cooldown = 75;
         dgnX = 0;
         
-        dashCharge = sDashCharge;
         dashTime = dashCharge;
         speed = 1;
         
         torGravity = 0.2;
-        torHits = sTorHit;
-        torMaxJump = sTorJump;
         torJump = torMaxJump;
         torHurt = 0;
         
@@ -120,9 +128,9 @@ class Main extends State {
         platform.y = Math.random(38, 100);
         
         intro = true;
-        shopCharge = 50;
-        shopJump = 1;
-        shopHits = 3;
+        
+        t = 0.0f;
+        shake = 0.0f;
     }
     
     void initBats(int diff){
@@ -180,18 +188,62 @@ class Main extends State {
         if(Button.Down.justPressed()){
             tailor = false;
             cursor = 0;
+            powerReady = 0;
         } 
         
         if(tailor){
             screen.drawRect(50, 50, 20, 20, 10, false);
         }else{
             screen.drawRect(50, 50, 20, 20, 5, false);
+            drawUpgrades();
+            drawPowerBox();
+            drawTorHits();
+            drawJumps();
+            
+            if(Button.Right.justPressed()){
+                if(powerReady == 2) powerReady = 0;
+                else powerReady++;
+            }
+            if(Button.Left.justPressed()){
+                if(powerReady == 0) powerReady = 2;
+                else powerReady--;
+            }
+            
+            if(Button.A.justPressed()){
+                switch(powerReady){
+                    case 0:
+                        if(dashCharge < 200) dashCharge += 10;
+                        dashTime = dashCharge;
+                        break;
+                    case 1:
+                        if(torMaxJump < 50) torMaxJump++;
+                        torJump = torMaxJump;
+                        break;
+                    case 2:
+                        if(torHits < 20) torHits++;
+                        break;
+                    default:
+                        break;
+                }
+            }
         }
         
         
         if(Button.C.justPressed()) {
             preStart = false;
-            subInit(shopCharge, shopJump, shopHits);
+            subInit();
+        }
+        screen.flush();
+    }
+    
+    void updateTitle(){
+        screen.setTextColor(6);
+        screen.setTextPosition(0,0);
+        screen.println("Press [C] to play");
+        screen.println("High score: " + save.score);
+        if(Button.C.justPressed()){
+            preStart = true;
+            title = false;
         }
         screen.flush();
     }
@@ -199,14 +251,43 @@ class Main extends State {
     // update is called by femto.Game every frame
     void update(){
         screen.clear(0);
-        
+        t += 2.0f;
+
+        if(title){
+            updateTitle();
+            return;
+        }
         
         if(preStart){
             updateShop();
             return;
         }
         
-        if(torHits <= 0) preStart = true;
+        if(shake > 0.0){
+            if(dashing){
+                screen.cameraX = Math.cos(t) * 1;
+            }else{
+                screen.cameraX = Math.cos(t) * 3;
+                screen.cameraY = Math.sin(t) * 3;
+            }
+            shake -= 0.2f;
+        }else{
+            screen.cameraX = 0;
+            screen.cameraY = 0;
+        }
+        
+        if(torHits <= 0) {
+            if(distance > save.score){
+                save.score = distance;
+                save.saveCookie();
+            }   
+            preStart = true;
+            torMaxJump = 1;
+            torJump = torMaxJump;
+            torHits = 3;
+            dashCharge = 50;
+            dashTime = dashCharge;
+        }
         
         distance+=1+speed;
         if(distance > nextDifficulty) {
@@ -248,6 +329,7 @@ class Main extends State {
             if(collidesWithTor(spike.x, spike.y, spike.width(), spike.height())){
                 torHurt = cooldown;
                 torHits-=1;
+                shake = 2.0;
                 //SO DEAD. GameOver if touch any spikes.
             }
         }
@@ -364,6 +446,7 @@ class Main extends State {
                 }else if (torHurt <= 0 && !batDead[i]){
                     torHurt = cooldown;
                     torHits-=1;
+                    shake = 2.0;
                 }
             }
         
@@ -383,6 +466,7 @@ class Main extends State {
             }else{
                 if(torHurt <= 0 && !ghoulDead){
                     torHits-=1;
+                    shake = 2.0;
                     torHurt = cooldown;
                 }
             }
@@ -450,6 +534,7 @@ class Main extends State {
         if(Button.B.isPressed() && dashTime > 0 && dashReady && torHurt <= 0){
             dashTime--;
             dashing = true;
+            shake += 0.2f;
             tor.dash();
         }
 
@@ -550,4 +635,5 @@ class Main extends State {
             screen.drawCircle(4*i+9, 170, 1, 10);
         }
     }
+
 }
