@@ -2,12 +2,9 @@ import femto.mode.HiRes16Color;
 import femto.Game;
 import femto.State;
 import femto.input.Button;
-import JavaDashPalette;
+import femto.sound.Mixer;
 import femto.font.TIC80;
 
-import Tor;
-import Coin;
-import Coffee;
 import enemies.Ghoul;
 import enemies.Bat;
 import enemies.Spikes;
@@ -16,7 +13,6 @@ import backgrounds.Door;
 
 import backgrounds.DungeonBackground;
 import backgrounds.FrontBackground;
-import StartBackground;
 
 import backgrounds.Platform;
 
@@ -30,12 +26,25 @@ class HighScore extends femto.Cookie {
 
 
 class Main extends State {
-
+    Explode explode;
+    Jump jumpSound;
+    Hurt hurt;
+    PowerUp powerUp;
+    CollectCoin coinCollect;
+    Die dieSound;
+    Splat splat;
+    BatSplat batSplat;
+    
+    Vampyre vamp = new Vampyre();
+    int zapTime;
+    boolean vampDead = false;
+    
+    
     static final var save = new HighScore();
 
     HiRes16Color screen; // the screenmode we want to draw with
 
-    boolean jump = false, dashing = false, dashReady = true, ghoulDead = false, intro = true, preStart = true, coinIntro = true;
+    boolean jump = false, dashing = false, dashReady = true, ghoulDead = false, intro = true, preStart = true, coinIntro = true, doorshut = true;
     Tor tor;
     Coffee coffee;
     Ghoul ghoul;
@@ -46,6 +55,15 @@ class Main extends State {
     Door door;
     DungeonBackground dungeonBackground;
     FrontBackground frontBackground;
+    
+    CarpetA carpetA;
+    CarpetB carpetB;
+    int cpax;
+    int cpbx;
+    
+    Rockway rockway;
+    int rockwayX;
+    
     Platform platform;
     
     float dxs, dys, torGravity;
@@ -58,16 +76,33 @@ class Main extends State {
     int cursor, shopCharge = 50, shopJump = 1, shopHits = 3;
     boolean tailor = false;
     int sbx = 0;
-    StartBackground startBackground;
+    TreeA treeA;
+    TreeB treeB;
+    TreeC treeC;
+    
+    int tax = 47, tbx = 108, tcx = 209;
     
     //title screen variables
     boolean title = true;
 
     public static void main(String[] args){
+        Mixer.init(8000);
         Game.run( TIC80.font(), new Main() );
     }
     
     void init(){
+        explode = new Explode(0);
+        jumpSound = new Jump(0);
+        
+        hurt = new Hurt(1);
+        splat = new Splat(1);
+        batSplat = new BatSplat(1);
+        
+        powerUp = new PowerUp(2);
+        coinCollect = new CollectCoin(2);
+        
+        dieSound = new Die(3);
+        
         screen = new HiRes16Color(JavaDashPalette.palette(), TIC80.font());
         cursor = 0;
         
@@ -79,7 +114,17 @@ class Main extends State {
 
         frontBackground = new FrontBackground();
         dungeonBackground = new DungeonBackground();
-        startBackground = new StartBackground();
+        rockway = new Rockway();
+        treeA = new TreeA();
+        treeA.idle();
+        treeA.y = 129-treeA.height();
+        
+        carpetA = new CarpetA();
+        
+        carpetB = new CarpetB();
+        
+        treeB = new TreeB();
+        treeC = new TreeC();
         
         door = new Door();
         
@@ -136,6 +181,9 @@ class Main extends State {
         shake = 0.0f;
         doorShake = 0.0f;
         
+        vamp.x = 300;
+        vamp.fly();
+        zapTime = 200;
         arrowCoins();
     }
     
@@ -221,11 +269,34 @@ class Main extends State {
         screen = null;
     }
     
+    void drawTrees(){
+        tbx -= 1;
+        tcx -= 1;
+        treeA.x -= 1;
+        if(treeA.x <= -60) {
+            treeA.x = Math.random(220, 400);
+            if(Math.random(0,2)==1)treeA.setMirrored(true);
+            else treeA.setMirrored(false);
+        }
+        if(tbx <= -60) tbx = Math.random(220, 400);
+        if(tcx <= -60) tcx = Math.random(220, 400);
+        
+        treeA.draw(screen);
+        treeB.draw(screen, tbx, 129-treeB.height());
+        treeC.draw(screen, tcx, 129-treeC.height());
+    }
+
     void updateShop(){
-        sbx -= 1;
-        if(sbx <= -220) sbx = 0;
-        startBackground.draw(screen, sbx, 0);
-        startBackground.draw(screen, sbx+220, 0);
+        
+        
+        drawGround();
+        
+        screen.fillRect(0, 0, 220, 40, 0);
+        
+        screen.fillRect(0, 138, 230, 50, 0);
+
+        drawTrees();
+        
         screen.setTextPosition(0, 0);
         screen.setTextColor(6);
         screen.println("Press [C] to start.");
@@ -289,6 +360,7 @@ class Main extends State {
         t += 2.0f;
 
         if(title){
+            drawGround();
             updateTitle();
             return;
         }
@@ -324,10 +396,15 @@ class Main extends State {
         }
         
         if(torHits <= 0) {
+            screen.cameraX = 0;
+            screen.cameraY = 0;
+            dieSound.play();
             if(distance > save.score){
                 save.score = distance;
                 save.saveCookie();
             }   
+            tor.run();
+            tor.y = 100;
             preStart = true;
             torMaxJump = 1;
             torJump = torMaxJump;
@@ -335,7 +412,8 @@ class Main extends State {
             dashCharge = 50;
             dashTime = dashCharge;
             powerReady = 1;
-            
+            arrowCoins();
+            return;
         }
         
         distance+=1+speed;
@@ -344,6 +422,7 @@ class Main extends State {
             nextDifficulty += 1000;
             door.x = 220;
             door.closed();
+            doorshut = true;
         }
         //Dungeon background
         dgnX -= 1+speed;
@@ -352,12 +431,15 @@ class Main extends State {
             intro = false;   
         }
         if(dgnX > -220 && intro){
-            frontBackground.draw(screen, dgnX, 0);
+            frontBackground.draw(screen, dgnX, 138-frontBackground.height());
             dungeonBackground.draw(screen, dgnX+220, 0);
+            screen.fillRect(dgnX+220, 128, 400, 10, 2);
         }else{
             dungeonBackground.draw(screen, dgnX-220, 0);
             dungeonBackground.draw(screen, dgnX, 0);
             dungeonBackground.draw(screen, dgnX+220, 0);
+            screen.fillRect(0, 128, 220, 10, 2);
+            drawCarpet();
         }
         //END Dungeon background
         
@@ -382,6 +464,9 @@ class Main extends State {
             }
         }
         //END SPIKES
+        
+        
+        
         
         //GHOUL
         ghoul.x-=1+speed;
@@ -421,6 +506,64 @@ class Main extends State {
         
         updateTor();
         if(torHurt >= 0)torHurt--;
+        
+        //update VAMPYRE
+        if(difficulty >= 1 ){
+            if(vamp.x <= -200){
+                if(Math.random(0, 20) == 5) {
+                    vamp.x = 600;
+                    vamp.y = tor.y;
+                    vampDead = false;
+                    System.out.println("SPAWNED VAMPYRE");
+                }
+            }
+            
+            
+            if(!vampDead){
+                if(!(vamp.x <= tor.x+tor.width())){
+                    vamp.x -= 0.1;
+                    System.out.println("VAMP X: " + vamp.x);
+                }
+                if(vamp.y > tor.y) vamp.y -= 0.3f;
+                else vamp.y += 0.3f; 
+                
+                if(vamp.x <= 110){
+                    vamp.transform();
+                }
+                if(vamp.x <= 80){
+                    vamp.idle();
+                }
+                
+                if(vamp.y >= tor.y - 10 && vamp.y+vamp.height() < tor.y + tor.height() + 10 && vamp.x <= tor.x + tor.width() + 10){
+                    vamp.zap();
+                    zapTime--;
+                }
+                
+                if(zapTime <= 0){
+                    screen.drawCircle(tor.x + tor.width()/2, tor.y+tor.height()/2, 4, 5, false);
+                    zapTime = 200;
+                    torHits--;
+                    torHurt = cooldown;
+                    tor.hurtRun();
+                }
+                
+                if(zapTime < 100){
+                    if(dashing && tor.y >= vamp.y && tor.y <= vamp.y + vamp.height()){
+                        vamp.x -= 1 + speed;
+                        if(vamp.x < tor.x + tor.width()){
+                            vampDead = true;
+                            vamp.x = -200;
+                        }
+                    }
+                }
+                
+                vamp.draw(screen);
+            }
+        }
+        //END VAMPYRE
+        
+        
+        
         checkGhoulGrabTor();
 
         drawPowerBox();
@@ -438,9 +581,11 @@ class Main extends State {
         //DOOR
         if(door.x > -10){
             door.x -= 1 + speed;
-            if(tor.y > 20 && tor.y + tor.height() < 108 && tor.x+tor.width() > door.x && dashing){
+            if(tor.y > 20 && tor.y + tor.height() < 108 && tor.x+tor.width() > door.x && dashing && doorshut){
                 door.broken();
                 doorShake = 3.0f;
+                explode.play();
+                doorshut = false;
             }
             door.draw(screen);
         }
@@ -471,9 +616,10 @@ class Main extends State {
             if(collidesWithTor(coins[i].x, coins[i].y, coins[i].width(), coins[i].height())){
                 coins[i].x = -200;
                 torCoins++;
+                coinCollect.play();
             }
         }
-        if(check == 20) initCoins();
+        if(check == coins.length) initCoins();
     }
 
     void updateBats(){
@@ -492,9 +638,11 @@ class Main extends State {
                     bats[i].dead();
                     batDead[i] = true;
                     kills++;
+                    batSplat.play();
                 }else if (torHurt <= 0 && !batDead[i]){
                     torHurt = cooldown;
                     torHits-=1;
+                    hurt.play();
                     shake = 2.0;
                 }
             }
@@ -512,9 +660,11 @@ class Main extends State {
                 ghoul.dead();
                 ghoulDead = true;
                 kills++;
+                splat.play();
             }else{
                 if(torHurt <= 0 && !ghoulDead){
                     torHits-=1;
+                    hurt.play();
                     shake = 2.0;
                     torHurt = cooldown;
                 }
@@ -577,6 +727,7 @@ class Main extends State {
             dys = -3.5;
             torJump--;
             jump = true;  
+            jumpSound.play();
             tor.jump();
         }
         
@@ -593,15 +744,18 @@ class Main extends State {
                     powerReady = -1;
                     if(dashCharge < 200) dashCharge += 10;
                     dashTime = dashCharge;
+                    powerUp.play();
                     break;
                 case 1:
                     if(torMaxJump < 50) torMaxJump++;
                     torJump = torMaxJump;
                     powerReady = -1;
+                    powerUp.play();
                     break;
                 case 2:
                     if(torHits < 20) torHits++;
                     powerReady = -1;
+                    powerUp.play();
                     break;
                 default:
                     break;
@@ -683,6 +837,25 @@ class Main extends State {
         for(int i = 0; i < torJump; i++){
             screen.drawCircle(10*i+10, 162, 2, 10);
         }
+    }
+    
+    void drawGround(){
+        
+        rockwayX-=1;
+        if(rockwayX <= -220)rockwayX = 0;
+        for(int i = 0; i < 20; i++){
+            rockway.draw(screen, 22 * i + rockwayX, 128);
+        }
+    }
+    
+    void drawCarpet(){
+        cpax -= 1 + speed;
+        cpbx -= 1 + speed;
+        if(cpax <= -100) cpax = 220 + Math.random(0, 200);
+        if(cpbx <= -100) cpbx = 220 + Math.random(0, 200);
+        
+        carpetA.draw(screen, cpax, 128);
+        carpetB.draw(screen, cpbx, 128);
     }
 
 }

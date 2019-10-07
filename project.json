@@ -440,6 +440,82 @@
 		"/StartBackground.png": {
 			"sdcard": false,
 			"implements": ""
+		},
+		"/Beat.wav": {
+			"sdcard": false
+		},
+		"/Explode.wav": {
+			"sdcard": false
+		},
+		"/Jump.wav": {
+			"sdcard": false
+		},
+		"/Hurt.wav": {
+			"sdcard": false
+		},
+		"/PowerUp.wav": {
+			"sdcard": false
+		},
+		"/CollectCoin.wav": {
+			"sdcard": false
+		},
+		"/Die.wav": {
+			"sdcard": false
+		},
+		"/Splat.wav": {
+			"sdcard": false
+		},
+		"/BatSplat.wav": {
+			"sdcard": false
+		},
+		"/Rockway.png": {
+			"sdcard": false,
+			"implements": ""
+		},
+		"/TreeA.png": {
+			"sdcard": false,
+			"implements": ""
+		},
+		"/TreeB.png": {
+			"sdcard": false,
+			"implements": ""
+		},
+		"/TreeC.png": {
+			"sdcard": false,
+			"implements": ""
+		},
+		"/Leaves.png": {
+			"sdcard": false,
+			"implements": ""
+		},
+		"/TreeA.ase": {
+			"sdcard": false
+		},
+		"/TreeA.json": {
+			"sdcard": false,
+			"implements": ""
+		},
+		"/CarpetA.aseprite": {
+			"sdcard": false
+		},
+		"/CarpetA.png": {
+			"sdcard": false,
+			"implements": ""
+		},
+		"/CarpetB.png": {
+			"sdcard": false,
+			"implements": ""
+		},
+		"/Vampyre.aseprite": {
+			"sdcard": false
+		},
+		"/Vampyre.json": {
+			"sdcard": false,
+			"implements": ""
+		},
+		"/Vampyre.png": {
+			"sdcard": false,
+			"implements": ""
 		}
 	}
 }
