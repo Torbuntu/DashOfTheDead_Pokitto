@@ -24,6 +24,13 @@ class HighScore extends femto.Cookie {
     int score;
 }
 
+class VanityWizHat extends femto.Cookie {
+    VanityWizHat(){
+        super();
+        begin("WIZHAT");
+    }
+    boolean hasWizHat;
+}
 
 class Main extends State {
     Explode explode;
@@ -56,6 +63,11 @@ class Main extends State {
     DungeonBackground dungeonBackground;
     FrontBackground frontBackground;
     
+    //VANITY
+    int vanity = 0;
+    WizardHat wizHat;
+    FishBowl fishBowl;
+    
     CarpetA carpetA;
     CarpetB carpetB;
     int cpax;
@@ -84,6 +96,7 @@ class Main extends State {
     
     //title screen variables
     boolean title = true;
+    Title titleImage = new Title();
 
     public static void main(String[] args){
         Mixer.init(8000);
@@ -109,6 +122,10 @@ class Main extends State {
         torCoins = 0;
 
         tor = new Tor();
+        
+        //VANITY 
+        wizHat = new WizardHat();
+        fishBowl = new FishBowl();
         
         ghoul = new Ghoul();
 
@@ -162,7 +179,7 @@ class Main extends State {
         //objects
         tor.y = 100;
         tor.x = 32;
-        tor.run();
+        playerRun();
         
         ghoul.grab();
         ghoul.x = 220;
@@ -269,69 +286,63 @@ class Main extends State {
         screen = null;
     }
     
-    void drawTrees(){
-        tbx -= 1;
-        tcx -= 1;
-        treeA.x -= 1;
-        if(treeA.x <= -60) {
-            treeA.x = Math.random(220, 400);
-            if(Math.random(0,2)==1)treeA.setMirrored(true);
-            else treeA.setMirrored(false);
-        }
-        if(tbx <= -60) tbx = Math.random(220, 400);
-        if(tcx <= -60) tcx = Math.random(220, 400);
-        
-        treeA.draw(screen);
-        treeB.draw(screen, tbx, 129-treeB.height());
-        treeC.draw(screen, tcx, 129-treeC.height());
-    }
-
     void updateShop(){
         
-        
         drawGround();
-        
         screen.fillRect(0, 0, 220, 40, 0);
-        
         screen.fillRect(0, 138, 230, 50, 0);
-
         drawTrees();
         
         screen.setTextPosition(0, 0);
         screen.setTextColor(6);
         screen.println("Press [C] to start.");
         screen.println("Coins: " + torCoins);
-
-        drawUpgrades();
-        drawPowerBox();
-        drawTorHits();
-        drawJumps();
+        if(Button.B.justPressed()) tailor = !tailor;
         
-        if(Button.Right.justPressed()){
-            if(powerReady == 2) powerReady = 0;
-            else powerReady++;
-        }
-        if(Button.Left.justPressed()){
-            if(powerReady == 0) powerReady = 2;
-            else powerReady--;
-        }
-        
-        if(Button.A.justPressed()){
-            switch(powerReady){
-                case 0:
-                    if(dashCharge < 200) dashCharge += 10;
-                    dashTime = dashCharge;
-                    break;
-                case 1:
-                    if(torMaxJump < 20) torMaxJump++;
-                    torJump = torMaxJump;
-                    break;
-                case 2:
-                    if(torHits < 20) torHits++;
-                    break;
-                default:
-                    break;
+        if(tailor){
+            if(Button.Right.justPressed()){
+                vanity++;
+                if(vanity > 2) vanity = 2;
+                System.out.println(vanity);
             }
+            if(Button.Left.justPressed()){
+                vanity--;
+                if(vanity < 0) vanity = 0;
+                System.out.println(vanity);
+            }
+        }else{
+            drawUpgrades();
+            drawPowerBox();
+            drawTorHits();
+            drawJumps();
+            
+            if(Button.Right.justPressed()){
+                if(powerReady == 2) powerReady = 0;
+                else powerReady++;
+            }
+            if(Button.Left.justPressed()){
+                if(powerReady == 0) powerReady = 2;
+                else powerReady--;
+            }
+            
+            if(Button.A.justPressed()){
+                switch(powerReady){
+                    case 0:
+                        if(dashCharge < 200) dashCharge += 10;
+                        dashTime = dashCharge;
+                        break;
+                    case 1:
+                        if(torMaxJump < 20) torMaxJump++;
+                        torJump = torMaxJump;
+                        break;
+                    case 2:
+                        if(torHits < 20) torHits++;
+                        break;
+                    default:
+                        break;
+                }
+            }
+           
         }
     
         if(Button.C.justPressed()) {
@@ -339,10 +350,21 @@ class Main extends State {
             subInit();
         }
         
-        tor.draw(screen);
+        switch(vanity){
+            case 0: 
+                tor.draw(screen);
+                break;
+            case 1:
+                wizHat.draw(screen, tor.x, tor.y);
+                break;
+            case 2:
+                fishBowl.draw(screen, tor.x, tor.y);
+                break;
+        }
     }
     
     void updateTitle(){
+        titleImage.draw(screen, 0,44);
         screen.setTextColor(6);
         screen.setTextPosition(0,0);
         screen.println("Press [C] to play");
@@ -432,12 +454,16 @@ class Main extends State {
         }
         if(dgnX > -220 && intro){
             frontBackground.draw(screen, dgnX, 138-frontBackground.height());
-            dungeonBackground.draw(screen, dgnX+220, 0);
+            for(int i = 0; i < 4; i++){
+                dungeonBackground.draw(screen, dgnX+220, i * 44);
+            }
             screen.fillRect(dgnX+220, 128, 400, 10, 2);
         }else{
-            dungeonBackground.draw(screen, dgnX-220, 0);
-            dungeonBackground.draw(screen, dgnX, 0);
-            dungeonBackground.draw(screen, dgnX+220, 0);
+            for(int i = 0; i < 4; i++){
+                dungeonBackground.draw(screen, dgnX, i * 44);
+                dungeonBackground.draw(screen, dgnX+220, i * 44);
+            }
+            
             screen.fillRect(0, 128, 220, 10, 2);
             drawCarpet();
         }
@@ -465,24 +491,8 @@ class Main extends State {
         }
         //END SPIKES
         
-        
-        
-        
         //GHOUL
-        ghoul.x-=1+speed;
-        if(ghoul.x <= -20){
-            ghoul.x = Math.random(220, 600);
-            ghoul.y = Math.random(50, 100);
-            if(platform.x < ghoul.x + ghoul.width() &&
-                platform.x + platform.width() > ghoul.x &&
-                platform.y < ghoul.y + ghoul.height() &&
-                platform.y + platform.height() > ghoul.y){
-                ghoul.x += 160;
-            }
-            ghoul.grab();
-            ghoulDead = false;
-        }
-        ghoul.draw(screen);
+        updateGhoul();
         //END GHOUL
         
         //BAT
@@ -505,64 +515,10 @@ class Main extends State {
         else speed = 1;
         
         updateTor();
-        if(torHurt >= 0)torHurt--;
         
         //update VAMPYRE
-        if(difficulty >= 1 ){
-            if(vamp.x <= -200){
-                if(Math.random(0, 20) == 5) {
-                    vamp.x = 600;
-                    vamp.y = tor.y;
-                    vampDead = false;
-                    System.out.println("SPAWNED VAMPYRE");
-                }
-            }
-            
-            
-            if(!vampDead){
-                if(!(vamp.x <= tor.x+tor.width())){
-                    vamp.x -= 0.1;
-                    System.out.println("VAMP X: " + vamp.x);
-                }
-                if(vamp.y > tor.y) vamp.y -= 0.3f;
-                else vamp.y += 0.3f; 
-                
-                if(vamp.x <= 110){
-                    vamp.transform();
-                }
-                if(vamp.x <= 80){
-                    vamp.idle();
-                }
-                
-                if(vamp.y >= tor.y - 10 && vamp.y+vamp.height() < tor.y + tor.height() + 10 && vamp.x <= tor.x + tor.width() + 10){
-                    vamp.zap();
-                    zapTime--;
-                }
-                
-                if(zapTime <= 0){
-                    screen.drawCircle(tor.x + tor.width()/2, tor.y+tor.height()/2, 4, 5, false);
-                    zapTime = 200;
-                    torHits--;
-                    torHurt = cooldown;
-                    tor.hurtRun();
-                }
-                
-                if(zapTime < 100){
-                    if(dashing && tor.y >= vamp.y && tor.y <= vamp.y + vamp.height()){
-                        vamp.x -= 1 + speed;
-                        if(vamp.x < tor.x + tor.width()){
-                            vampDead = true;
-                            vamp.x = -200;
-                        }
-                    }
-                }
-                
-                vamp.draw(screen);
-            }
-        }
+        updateVampire();
         //END VAMPYRE
-        
-        
         
         checkGhoulGrabTor();
 
@@ -604,6 +560,60 @@ class Main extends State {
     boolean collidesWithTor(float x, float y, float width, float height){
         return tor.x + 4 < x + width && tor.x + 4 + tor.width() - 8 > x 
                 && tor.y + 4 < y + height && tor.y + 4 + tor.height() - 8 > y;
+    }
+    
+    void updateVampire(){
+        if(difficulty >= 1 ){
+            if(vamp.x <= -200){
+                if(Math.random(0, 20) == 5) {
+                    vamp.x = 600;
+                    vamp.y = tor.y;
+                    vampDead = false;
+                    System.out.println("SPAWNED VAMPYRE");
+                }
+            }
+            
+            
+            if(!vampDead){
+                if(!(vamp.x <= tor.x+tor.width())){
+                    vamp.x -= 0.1;
+                    System.out.println("VAMP X: " + vamp.x);
+                }
+                if(vamp.y > tor.y) vamp.y -= 0.3f;
+                else vamp.y += 0.3f; 
+                
+                if(vamp.x <= 110){
+                    vamp.transform();
+                }
+                if(vamp.x <= 80){
+                    vamp.idle();
+                }
+                
+                if(vamp.y >= tor.y - 10 && vamp.y+vamp.height() < tor.y + tor.height() + 10 && vamp.x <= tor.x + tor.width() + 10){
+                    vamp.zap();
+                    zapTime--;
+                }
+                
+                if(zapTime <= 0){
+                    screen.drawCircle(tor.x + tor.width()/2, tor.y+tor.height()/2, 4, 5, false);
+                    zapTime = 200;
+                    torHits--;
+                    torHurt = cooldown;
+                }
+                
+                if(zapTime < 100){
+                    if(dashing && tor.y >= vamp.y && tor.y <= vamp.y + vamp.height()){
+                        vamp.x -= 1 + speed;
+                        if(vamp.x < tor.x + tor.width()){
+                            vampDead = true;
+                            vamp.x = -200;
+                        }
+                    }
+                }
+                
+                vamp.draw(screen);
+            }
+        }
     }
 
     void updateCoins(){
@@ -653,6 +663,23 @@ class Main extends State {
         if(check >= bats.length) initBats(difficulty);
     }
     
+    void updateGhoul(){
+        ghoul.x-=1+speed;
+        if(ghoul.x <= -20){
+            ghoul.x = Math.random(220, 600);
+            ghoul.y = Math.random(50, 100);
+            if(platform.x < ghoul.x + ghoul.width() &&
+                platform.x + platform.width() > ghoul.x &&
+                platform.y < ghoul.y + ghoul.height() &&
+                platform.y + platform.height() > ghoul.y){
+                ghoul.x += 160;
+            }
+            ghoul.grab();
+            ghoulDead = false;
+        }
+        ghoul.draw(screen);
+    }
+    
     void checkGhoulGrabTor(){
         // screen.drawRect(ghoul.x, ghoul.y, ghoul.width(), ghoul.height()-8, 10, false);
         if(collidesWithTor(ghoul.x, ghoul.y, ghoul.width(), ghoul.height()-8)){
@@ -690,7 +717,9 @@ class Main extends State {
                 if(!Button.Down.isPressed() ){
                     dys = 0;
                     torJump = torMaxJump;
-                    if(!dashing && torHurt <= 0)tor.run();
+                    if(!dashing && torHurt <= 0){
+                        playerRun();
+                    }
                     return true;
                 }
                
@@ -718,7 +747,9 @@ class Main extends State {
                 tor.y = 100;
                 jump = false;
                 torJump = torMaxJump;
-                if(!dashing && torHurt <= 0)tor.run();
+                if(!dashing && torHurt <= 0){
+                    playerRun();
+                }
             }
         }
 
@@ -728,14 +759,14 @@ class Main extends State {
             torJump--;
             jump = true;  
             jumpSound.play();
-            tor.jump();
+            playerJump();
         }
         
         if(Button.B.isPressed() && dashTime > 0 && dashReady && torHurt <= 0){
             dashTime--;
             dashing = true;
             shake += 0.2f;
-            tor.dash();
+            playerDash();
         }
 
         if(Button.C.justPressed()){
@@ -762,11 +793,9 @@ class Main extends State {
             }
         }
         
-        
-        
         if(!Button.B.isPressed() && dashing && torHurt <= 0){
             dashing = false;
-            tor.jump();
+            playerJump();
         }
         //END Input
         
@@ -781,13 +810,26 @@ class Main extends State {
         if(dashTime <= 0 && torHurt <= 0){
             dashing = false;
             dashReady = false;
-            tor.jump();
+            playerJump();
         }
         
-        if(torHurt >= 0) tor.hurtRun();
+        if(torHurt >= 0){
+            playerHurtRun();
+            torHurt--;
+        } 
         
         tor.y += dys;
-        tor.draw(screen); // Animation is updated automatically
+        switch(vanity){
+            case 0:
+                tor.draw(screen);
+                break;
+            case 1:
+                wizHat.draw(screen, tor.x, tor.y);
+                break;
+            case 2:
+                fishBowl.draw(screen, tor.x, tor.y);
+                break;
+        }
     }
 
     void updateCoffeeDrops(){
@@ -856,6 +898,47 @@ class Main extends State {
         
         carpetA.draw(screen, cpax, 128);
         carpetB.draw(screen, cpbx, 128);
+    }
+    
+    void drawTrees(){
+        tbx -= 1;
+        tcx -= 1;
+        treeA.x -= 1;
+        if(treeA.x <= -60) {
+            treeA.x = Math.random(220, 400);
+            if(Math.random(0,2)==1)treeA.setMirrored(true);
+            else treeA.setMirrored(false);
+        }
+        if(tbx <= -60) tbx = Math.random(220, 400);
+        if(tcx <= -60) tcx = Math.random(220, 400);
+        
+        treeA.draw(screen);
+        treeB.draw(screen, tbx, 129-treeB.height());
+        treeC.draw(screen, tcx, 129-treeC.height());
+    }
+    
+    void playerRun(){
+        tor.run();
+        wizHat.run();
+        fishBowl.run();
+    }
+    
+    void playerHurtRun(){
+        tor.hurtRun();
+        wizHat.hurtRun();
+        fishBowl.hurtRun();
+    }
+    
+    void playerDash(){
+        tor.dash();
+        wizHat.dash();
+        fishBowl.dash();
+    }
+    
+    void playerJump(){
+        tor.jump();
+        wizHat.jump();
+        fishBowl.jump();
     }
 
 }

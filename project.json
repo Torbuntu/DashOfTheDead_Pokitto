@@ -516,6 +516,32 @@
 		"/Vampyre.png": {
 			"sdcard": false,
 			"implements": ""
+		},
+		"/WizardHat.aseprite": {
+			"sdcard": false
+		},
+		"/WizardHat.json": {
+			"sdcard": false,
+			"implements": ""
+		},
+		"/WizardHat.png": {
+			"sdcard": false,
+			"implements": ""
+		},
+		"/FishBowl.aseprite": {
+			"sdcard": false
+		},
+		"/FishBowl.json": {
+			"sdcard": false,
+			"implements": ""
+		},
+		"/FishBowl.png": {
+			"sdcard": false,
+			"implements": ""
+		},
+		"/Title.png": {
+			"sdcard": false,
+			"implements": ""
 		}
 	}
 }
