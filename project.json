@@ -542,6 +542,101 @@
 		"/Title.png": {
 			"sdcard": false,
 			"implements": ""
+		},
+		"/Drago.aseprite": {
+			"sdcard": false
+		},
+		"/Hero.aseprite": {
+			"sdcard": false
+		},
+		"/Hero.json": {
+			"sdcard": false,
+			"implements": ""
+		},
+		"/Hero.png": {
+			"sdcard": false,
+			"implements": ""
+		},
+		"/backgrounds/.goutputstream-U6328Z": {
+			"sdcard": false
+		},
+		"/backgrounds/.goutputstream-R0178Z": {
+			"sdcard": false
+		},
+		"/backgrounds/TreeA.png": {
+			"sdcard": false,
+			"implements": ""
+		},
+		"/backgrounds/TreeB.png": {
+			"sdcard": false,
+			"implements": ""
+		},
+		"/backgrounds/TreeC.png": {
+			"sdcard": false,
+			"implements": ""
+		},
+		"/audio": {
+			"sdcard": false
+		},
+		"/audio/BatSplat.wav": {
+			"sdcard": false
+		},
+		"/audio/CollectCoin.wav": {
+			"sdcard": false
+		},
+		"/audio/Die.wav": {
+			"sdcard": false
+		},
+		"/audio/Explode.wav": {
+			"sdcard": false
+		},
+		"/audio/Hurt.wav": {
+			"sdcard": false
+		},
+		"/audio/Jump.wav": {
+			"sdcard": false
+		},
+		"/audio/PowerUp.wav": {
+			"sdcard": false
+		},
+		"/audio/Splat.wav": {
+			"sdcard": false
+		},
+		"/skins": {
+			"sdcard": false
+		},
+		"/backgrounds/TreeA.ase": {
+			"sdcard": false
+		},
+		"/backgrounds/TreeA.json": {
+			"sdcard": false,
+			"implements": ""
+		},
+		"/backgrounds/CarpetA.aseprite": {
+			"sdcard": false
+		},
+		"/backgrounds/CarpetA.png": {
+			"sdcard": false,
+			"implements": ""
+		},
+		"/backgrounds/CarpetB.png": {
+			"sdcard": false,
+			"implements": ""
+		},
+		"/enemies/Vampyre.aseprite": {
+			"sdcard": false
+		},
+		"/enemies/Vampyre.json": {
+			"sdcard": false,
+			"implements": ""
+		},
+		"/enemies/Vampyre.png": {
+			"sdcard": false,
+			"implements": ""
+		},
+		"/backgrounds/Rockway.png": {
+			"sdcard": false,
+			"implements": ""
 		}
 	}
 }

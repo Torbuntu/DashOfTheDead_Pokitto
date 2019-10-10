@@ -8,13 +8,30 @@ import femto.font.TIC80;
 import enemies.Ghoul;
 import enemies.Bat;
 import enemies.Spikes;
+import enemies.Vampyre;
 
 import backgrounds.Door;
-
 import backgrounds.DungeonBackground;
 import backgrounds.FrontBackground;
-
 import backgrounds.Platform;
+import backgrounds.TreeA;
+import backgrounds.TreeB;
+import backgrounds.TreeC;
+import backgrounds.CarpetA;
+import backgrounds.CarpetB;
+
+import skins.Tor;
+import skins.WizardHat;
+
+
+import audio.BatSplat;
+import audio.CollectCoin;
+import audio.Die;
+import audio.Explode;
+import audio.Hurt;
+import audio.Jump;
+import audio.PowerUp;
+import audio.Splat;
 
 class HighScore extends femto.Cookie {
     HighScore(){
@@ -67,6 +84,7 @@ class Main extends State {
     int vanity = 0;
     WizardHat wizHat;
     FishBowl fishBowl;
+    Hero hero;
     
     CarpetA carpetA;
     CarpetB carpetB;
@@ -126,6 +144,7 @@ class Main extends State {
         //VANITY 
         wizHat = new WizardHat();
         fishBowl = new FishBowl();
+        hero = new Hero();
         
         ghoul = new Ghoul();
 
@@ -302,13 +321,11 @@ class Main extends State {
         if(tailor){
             if(Button.Right.justPressed()){
                 vanity++;
-                if(vanity > 2) vanity = 2;
-                System.out.println(vanity);
+                if(vanity > 3) vanity = 3;
             }
             if(Button.Left.justPressed()){
                 vanity--;
                 if(vanity < 0) vanity = 0;
-                System.out.println(vanity);
             }
         }else{
             drawUpgrades();
@@ -360,6 +377,8 @@ class Main extends State {
             case 2:
                 fishBowl.draw(screen, tor.x, tor.y);
                 break;
+            case 3:
+                hero.draw(screen, tor.x, tor.y);
         }
     }
     
@@ -425,7 +444,7 @@ class Main extends State {
                 save.score = distance;
                 save.saveCookie();
             }   
-            tor.run();
+            playerRun();
             tor.y = 100;
             preStart = true;
             torMaxJump = 1;
@@ -563,13 +582,12 @@ class Main extends State {
     }
     
     void updateVampire(){
-        if(difficulty >= 1 ){
+        if(difficulty >= 25){
             if(vamp.x <= -200){
                 if(Math.random(0, 20) == 5) {
                     vamp.x = 600;
                     vamp.y = tor.y;
                     vampDead = false;
-                    System.out.println("SPAWNED VAMPYRE");
                 }
             }
             
@@ -577,7 +595,6 @@ class Main extends State {
             if(!vampDead){
                 if(!(vamp.x <= tor.x+tor.width())){
                     vamp.x -= 0.1;
-                    System.out.println("VAMP X: " + vamp.x);
                 }
                 if(vamp.y > tor.y) vamp.y -= 0.3f;
                 else vamp.y += 0.3f; 
@@ -819,17 +836,7 @@ class Main extends State {
         } 
         
         tor.y += dys;
-        switch(vanity){
-            case 0:
-                tor.draw(screen);
-                break;
-            case 1:
-                wizHat.draw(screen, tor.x, tor.y);
-                break;
-            case 2:
-                fishBowl.draw(screen, tor.x, tor.y);
-                break;
-        }
+        drawPlayer();
     }
 
     void updateCoffeeDrops(){
@@ -917,28 +924,55 @@ class Main extends State {
         treeC.draw(screen, tcx, 129-treeC.height());
     }
     
+    void drawPlayer(){
+        switch(vanity){
+            case 0:
+                tor.draw(screen);
+                break;
+            case 1:
+                wizHat.draw(screen, tor.x, tor.y);
+                break;
+            case 2:
+                fishBowl.draw(screen, tor.x, tor.y);
+                break;
+            case 3:
+                hero.draw(screen, tor.x, tor.y);
+                break;
+        }
+    }
+    
     void playerRun(){
         tor.run();
         wizHat.run();
         fishBowl.run();
+        hero.run();
     }
     
     void playerHurtRun(){
         tor.hurtRun();
         wizHat.hurtRun();
         fishBowl.hurtRun();
+        
+        if(vanity == 3){
+            screen.setTextPosition(tor.x-16, tor.y-8);
+            screen.setTextColor(10);
+            screen.println("HEY! LISTEN!");
+        }
+        hero.hurtRun();
     }
     
     void playerDash(){
         tor.dash();
         wizHat.dash();
         fishBowl.dash();
+        hero.dash();
     }
     
     void playerJump(){
         tor.jump();
         wizHat.jump();
         fishBowl.jump();
+        hero.jump();
     }
 
 }
