@@ -19,10 +19,12 @@ import backgrounds.TreeB;
 import backgrounds.TreeC;
 import backgrounds.CarpetA;
 import backgrounds.CarpetB;
+import backgrounds.Rockway;
 
 import skins.Tor;
 import skins.WizardHat;
-
+import skins.FishBowl;
+import skins.Hero;
 
 import audio.BatSplat;
 import audio.CollectCoin;

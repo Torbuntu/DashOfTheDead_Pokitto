@@ -637,6 +637,50 @@
 		"/backgrounds/Rockway.png": {
 			"sdcard": false,
 			"implements": ""
+		},
+		"/skins/FishBowl.aseprite": {
+			"sdcard": false
+		},
+		"/skins/FishBowl.json": {
+			"sdcard": false,
+			"implements": ""
+		},
+		"/skins/FishBowl.png": {
+			"sdcard": false,
+			"implements": ""
+		},
+		"/skins/Hero.aseprite": {
+			"sdcard": false
+		},
+		"/skins/Hero.json": {
+			"sdcard": false,
+			"implements": ""
+		},
+		"/skins/Hero.png": {
+			"sdcard": false,
+			"implements": ""
+		},
+		"/skins/Tor.aseprite": {
+			"sdcard": false
+		},
+		"/skins/Tor.json": {
+			"sdcard": false,
+			"implements": ""
+		},
+		"/skins/Tor.png": {
+			"sdcard": false,
+			"implements": ""
+		},
+		"/skins/WizardHat.aseprite": {
+			"sdcard": false
+		},
+		"/skins/WizardHat.json": {
+			"sdcard": false,
+			"implements": ""
+		},
+		"/skins/WizardHat.png": {
+			"sdcard": false,
+			"implements": ""
 		}
 	}
 }
