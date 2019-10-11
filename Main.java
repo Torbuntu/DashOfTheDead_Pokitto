@@ -766,9 +766,7 @@ class Main extends State {
                 tor.y = 100;
                 jump = false;
                 torJump = torMaxJump;
-                if(!dashing && torHurt <= 0){
-                    playerRun();
-                }
+                playerRun();
             }
         }
 
@@ -833,7 +831,6 @@ class Main extends State {
         }
         
         if(torHurt >= 0){
-            playerHurtRun();
             torHurt--;
         } 
         
@@ -927,6 +924,14 @@ class Main extends State {
     }
     
     void drawPlayer(){
+        if(vanity == 3 && torHurt > 0 ){
+            screen.setTextPosition(tor.x-16, tor.y-8);
+            screen.setTextColor(10);
+            screen.println("HEY! LISTEN!");
+        }
+        if(torHurt > 0 && torHurt % 3 == 1){
+           return;
+        }
         switch(vanity){
             case 0:
                 tor.draw(screen);
@@ -949,20 +954,7 @@ class Main extends State {
         fishBowl.run();
         hero.run();
     }
-    
-    void playerHurtRun(){
-        tor.hurtRun();
-        wizHat.hurtRun();
-        fishBowl.hurtRun();
-        
-        if(vanity == 3){
-            screen.setTextPosition(tor.x-16, tor.y-8);
-            screen.setTextColor(10);
-            screen.println("HEY! LISTEN!");
-        }
-        hero.hurtRun();
-    }
-    
+
     void playerDash(){
         tor.dash();
         wizHat.dash();
