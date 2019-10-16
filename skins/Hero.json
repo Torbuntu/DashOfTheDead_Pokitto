@@ -61,7 +61,7 @@
     "trimmed": false,
     "spriteSourceSize": { "x": 0, "y": 0, "w": 32, "h": 32 },
     "sourceSize": { "w": 32, "h": 32 },
-    "duration": 100
+    "duration": 300
    },
    "Hero 8.aseprite": {
     "frame": { "x": 256, "y": 0, "w": 32, "h": 32 },
@@ -78,38 +78,6 @@
     "spriteSourceSize": { "x": 0, "y": 0, "w": 32, "h": 32 },
     "sourceSize": { "w": 32, "h": 32 },
     "duration": 100
-   },
-   "Hero 10.aseprite": {
-    "frame": { "x": 320, "y": 0, "w": 32, "h": 32 },
-    "rotated": false,
-    "trimmed": false,
-    "spriteSourceSize": { "x": 0, "y": 0, "w": 32, "h": 32 },
-    "sourceSize": { "w": 32, "h": 32 },
-    "duration": 300
-   },
-   "Hero 11.aseprite": {
-    "frame": { "x": 352, "y": 0, "w": 32, "h": 32 },
-    "rotated": false,
-    "trimmed": false,
-    "spriteSourceSize": { "x": 0, "y": 0, "w": 32, "h": 32 },
-    "sourceSize": { "w": 32, "h": 32 },
-    "duration": 100
-   },
-   "Hero 12.aseprite": {
-    "frame": { "x": 384, "y": 0, "w": 32, "h": 32 },
-    "rotated": false,
-    "trimmed": false,
-    "spriteSourceSize": { "x": 0, "y": 0, "w": 32, "h": 32 },
-    "sourceSize": { "w": 32, "h": 32 },
-    "duration": 100
-   },
-   "Hero 13.aseprite": {
-    "frame": { "x": 416, "y": 0, "w": 32, "h": 32 },
-    "rotated": false,
-    "trimmed": false,
-    "spriteSourceSize": { "x": 0, "y": 0, "w": 32, "h": 32 },
-    "sourceSize": { "w": 32, "h": 32 },
-    "duration": 100
    }
  },
  "meta": {
@@ -117,12 +85,12 @@
   "version": "1.2.15-x64",
   "image": "Hero.png",
   "format": "RGBA8888",
-  "size": { "w": 448, "h": 32 },
+  "size": { "w": 320, "h": 32 },
   "scale": "1",
   "frameTags": [
-   { "name": "run", "from": 0, "to": 7, "direction": "forward" },
-   { "name": "jump", "from": 8, "to": 11, "direction": "forward" },
-   { "name": "dash", "from": 12, "to": 13, "direction": "forward" }
+   { "name": "run", "from": 0, "to": 5, "direction": "forward" },
+   { "name": "jump", "from": 6, "to": 7, "direction": "forward" },
+   { "name": "dash", "from": 8, "to": 9, "direction": "forward" }
   ],
   "layers": [
    { "name": "Layer 1", "opacity": 255, "blendMode": "normal" }

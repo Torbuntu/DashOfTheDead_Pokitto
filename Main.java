@@ -43,12 +43,16 @@ class HighScore extends femto.Cookie {
     int score;
 }
 
-class VanityWizHat extends femto.Cookie {
-    VanityWizHat(){
+class VanityManager extends femto.Cookie {
+    VanityManager(){
         super();
-        begin("WIZHAT");
+        begin("WIZ");
+        begin("FISH");
+        begin("HERO");
     }
     boolean hasWizHat;
+    boolean hasFishBowl;
+    boolean hasHero;
 }
 
 class Main extends State {
@@ -67,10 +71,11 @@ class Main extends State {
     
     
     static final var save = new HighScore();
+    static final var vanityManager = new VanityManager();
 
     HiRes16Color screen; // the screenmode we want to draw with
 
-    boolean jump = false, dashing = false, dashReady = true, ghoulDead = false, intro = true, preStart = true, coinIntro = true, doorshut = true;
+    boolean jump = false, dashing = false, dashReady = true, ghoulDead = false, intro = true, preStart = true, coinIntro = true, doorshut = true, inDungeon = true;
     Tor tor;
     Coffee coffee;
     Ghoul ghoul;
@@ -81,6 +86,8 @@ class Main extends State {
     Door door;
     DungeonBackground dungeonBackground;
     FrontBackground frontBackground;
+    
+    Lock lock;
     
     //VANITY
     int vanity = 0;
@@ -107,6 +114,7 @@ class Main extends State {
     //prestart screen variables
     int cursor, shopCharge = 50, shopJump = 1, shopHits = 3;
     boolean tailor = false;
+    String message = "";
     int sbx = 0;
     TreeA treeA;
     TreeB treeB;
@@ -124,6 +132,7 @@ class Main extends State {
     }
     
     void init(){
+        //Sounds
         explode = new Explode(0);
         jumpSound = new Jump(0);
         
@@ -135,18 +144,25 @@ class Main extends State {
         coinCollect = new CollectCoin(2);
         
         dieSound = new Die(3);
+        //END Sounds
+        
         
         screen = new HiRes16Color(JavaDashPalette.palette(), TIC80.font());
         cursor = 0;
         
         torCoins = 0;
 
-        tor = new Tor();
+       
         
         //VANITY 
+        tor = new Tor();
         wizHat = new WizardHat();
         fishBowl = new FishBowl();
         hero = new Hero();
+        
+        lock = new Lock();
+        
+        //END Vanity
         
         ghoul = new Ghoul();
 
@@ -165,6 +181,7 @@ class Main extends State {
         treeC = new TreeC();
         
         door = new Door();
+        door.x = 220;
         
         platform = new Platform();
         platform.idle();
@@ -307,6 +324,34 @@ class Main extends State {
         screen = null;
     }
     
+    boolean vanityCheck(){
+        switch(vanity){
+            case 0:
+                return true;
+            case 1:
+                return vanityManager.hasWizHat;
+            case 2:
+                return vanityManager.hasFishBowl;
+            case 3:
+                return vanityManager.hasHero;
+            default:
+                return false;
+        }
+    }
+    
+    String vanityMessage(){
+        switch(vanity){
+            case 1:
+                return "The Wizard Robes! With complementary\nKitty! No idea where he came from.";
+            case 2:
+                return "Fish Bowl. If you like to swim?";
+            case 3:
+                return "This one links some memories.\nThe Hero suit!";
+            default:
+                return "Press [B] to return to Power Up shop.";
+        }
+    }
+    
     void updateShop(){
         
         drawGround();
@@ -318,23 +363,73 @@ class Main extends State {
         screen.setTextColor(6);
         screen.println("Press [C] to start.");
         screen.println("Coins: " + torCoins);
-        if(Button.B.justPressed()) tailor = !tailor;
-        
+        if(Button.B.justPressed()) {
+            tailor = !tailor;
+            if(tailor){
+                message = "Welcome to the tailor's shop!\nHave a look around with [<-] and [->].";
+            }else{
+                if(!vanityCheck()){
+                    vanity = 0;
+                }
+            }
+        }
         if(tailor){
             if(Button.Right.justPressed()){
                 vanity++;
                 if(vanity > 3) vanity = 3;
+                message = vanityMessage();
             }
             if(Button.Left.justPressed()){
                 vanity--;
                 if(vanity < 0) vanity = 0;
+                message = vanityMessage();
+            }
+            
+            if(Button.C.justPressed()) {
+                switch(vanity){
+                    case 1:
+                        if(!vanityManager.hasWizHat){
+                            if(torCoins >= 500){
+                                torCoins -= 500;
+                                vanityManager.hasWizHat = true;
+                                vanityManager.saveCookie();
+                            }else{
+                                message = message + "\nYou're short " + (500 - torCoins) + " coins.";
+                            }
+                        }
+                        break;
+                    case 2:
+                        if(!vanityManager.hasFishBowl){
+                            if(torCoins >= 750){
+                                torCoins -= 750;
+                                vanityManager.hasFishBowl = true;
+                                vanityManager.saveCookie();
+                            }else{
+                                message = message + "\nYou're short " + (750 - torCoins) + " coins.";
+                            }
+                        }
+                        break;
+                    case 3:
+                        if(!vanityManager.hasHero){
+                            if(torCoins >= 1000){
+                                torCoins -= 1000;
+                                vanityManager.hasFishBowl = true;
+                                vanityManager.saveCookie();
+                            }else{
+                                message = message + "\nYou're short " + (1000 - torCoins) + " coins.";
+                            }
+                        }
+                        break;
+                    default:
+                    break;
+                }
             }
         }else{
             drawUpgrades();
             drawPowerBox();
             drawTorHits();
             drawJumps();
-            
+            message = "Press [B] to go to tailor.\nPress [<-] or [->] to select power up.";
             if(Button.Right.justPressed()){
                 if(powerReady == 2) powerReady = 0;
                 else powerReady++;
@@ -361,27 +456,36 @@ class Main extends State {
                         break;
                 }
             }
-           
+           if(Button.C.justPressed() && vanityCheck()) {
+                preStart = false;
+                subInit();
+            }
         }
     
-        if(Button.C.justPressed()) {
-            preStart = false;
-            subInit();
-        }
         
+        if (tailor) screen.setTextPosition(0, 138);
+        else screen.setTextPosition(0, 16);
+        
+        screen.setTextColor(10);
         switch(vanity){
             case 0: 
                 tor.draw(screen);
                 break;
             case 1:
                 wizHat.draw(screen, tor.x, tor.y);
+                if(tailor) screen.println("Cost: 500");
                 break;
             case 2:
                 fishBowl.draw(screen, tor.x, tor.y);
+                if(tailor) screen.println("Cost: 750");
                 break;
             case 3:
                 hero.draw(screen, tor.x, tor.y);
+                if(tailor) screen.println("Cost: 1,000");
+                break;
         }
+        if(!vanityCheck())lock.draw(screen, tor.x+tor.width()/2, tor.y+tor.height()/2);
+        screen.println(message);
     }
     
     void updateTitle(){
@@ -443,7 +547,7 @@ class Main extends State {
             screen.cameraY = 0;
             dieSound.play();
             if(distance > save.score){
-                save.score = distance;
+                save.score = distance/10;
                 save.saveCookie();
             }   
             playerRun();
@@ -484,7 +588,6 @@ class Main extends State {
                 dungeonBackground.draw(screen, dgnX, i * 44);
                 dungeonBackground.draw(screen, dgnX+220, i * 44);
             }
-            
             screen.fillRect(0, 128, 220, 10, 2);
             drawCarpet();
         }
@@ -558,12 +661,23 @@ class Main extends State {
         //DOOR
         if(door.x > -10){
             door.x -= 1 + speed;
-            if(tor.y > 20 && tor.y + tor.height() < 108 && tor.x+tor.width() > door.x && dashing && doorshut){
-                door.broken();
-                doorShake = 3.0f;
-                explode.play();
-                doorshut = false;
+            if(tor.y > 20 && tor.y + tor.height() < 108 && tor.x+tor.width()/2 > door.x && doorshut){
+                if(dashing){
+                    door.broken();
+                    doorShake = 3.0f;
+                    explode.play();
+                    doorshut = false;
+                }else{
+                    torHurt = cooldown;
+                    torHits = 0;
+                    //SO DEAD. GameOver
+                }
+            }else if(tor.y < 20 || tor.y+tor.height() > 108 && tor.x+tor.width()/2 > door.x && doorshut){
+                torHurt = cooldown;
+                torHits = 0;
+                //SO DEAD. GameOver
             }
+            
             door.draw(screen);
         }
         //DOOR
@@ -571,7 +685,7 @@ class Main extends State {
         //Draw position
         screen.setTextPosition(0, 0);
         screen.setTextColor(10);
-        screen.println("Distance: "+distance);
+        screen.println("Distance: "+distance/10);
         screen.println("Kills: " + kills);
         screen.println("Coins: " + torCoins);
 

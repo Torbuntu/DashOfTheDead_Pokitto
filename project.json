@@ -681,6 +681,18 @@
 		"/skins/WizardHat.png": {
 			"sdcard": false,
 			"implements": ""
+		},
+		"/backgrounds/HallwayPillars.png": {
+			"sdcard": false,
+			"implements": ""
+		},
+		"/backgrounds/PillarCap.png": {
+			"sdcard": false,
+			"implements": ""
+		},
+		"/Lock.png": {
+			"sdcard": false,
+			"implements": ""
 		}
 	}
 }
