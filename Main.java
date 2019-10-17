@@ -75,7 +75,9 @@ class Main extends State {
 
     HiRes16Color screen; // the screenmode we want to draw with
 
-    boolean jump = false, dashing = false, dashReady = true, ghoulDead = false, intro = true, preStart = true, coinIntro = true, doorshut = true, inDungeon = true;
+    boolean newHighScore = false;
+    boolean jump = false, dashing = false, dashReady = true, ghoulDead = false, intro = true, preStart = true, coinIntro = true, doorshut = true, inDungeon = true, dead = false;
+    boolean menuCursor = false; //false = Game Start, true = Reset Data
     Tor tor;
     Coffee coffee;
     Ghoul ghoul;
@@ -359,9 +361,10 @@ class Main extends State {
         screen.fillRect(0, 138, 230, 50, 0);
         drawTrees();
         
-        screen.setTextPosition(0, 0);
+        screen.setTextPosition(62, 0);
         screen.setTextColor(6);
         screen.println("Press [C] to start.");
+        screen.setTextPosition(0, 10);
         screen.println("Coins: " + torCoins);
         if(Button.B.justPressed()) {
             tailor = !tailor;
@@ -429,7 +432,7 @@ class Main extends State {
             drawPowerBox();
             drawTorHits();
             drawJumps();
-            message = "Press [B] to go to tailor.\nPress [<-] or [->] to select power up.";
+            message = "Press [B] to go to tailor.\nPress [<-] or [->] to select power up.\n[A] to purchase.";
             if(Button.Right.justPressed()){
                 if(powerReady == 2) powerReady = 0;
                 else powerReady++;
@@ -492,19 +495,81 @@ class Main extends State {
         titleImage.draw(screen, 0,44);
         screen.setTextColor(6);
         screen.setTextPosition(0,0);
-        screen.println("Press [C] to play");
         screen.println("High score: " + save.score);
+        screen.setTextPosition(66,150);
+        screen.println("Game Start");
+        screen.setTextPosition(66, 160);
+        screen.println("Reset data");
+                
+                
+        screen.setTextColor(10);
+        if(menuCursor){
+            screen.setTextPosition(52, 160);
+            screen.println("->");
+        }else{
+            screen.setTextPosition(52, 150);
+            screen.println("->");
+        }
+        
+        if(Button.Down.justPressed() || Button.Up.justPressed()) menuCursor = !menuCursor;
+        
         if(Button.C.justPressed()){
-            preStart = true;
-            title = false;
+            if(menuCursor){
+                save.score = 0;
+                save.saveCookie();
+                
+                vanityManager.hasFishBowl = false;
+                vanityManager.hasWizHat = false;
+                vanityManager.hasHero = false;
+                vanityManager.saveCookie();
+            }else{
+                preStart = true;
+                title = false;
+            }
         }
         screen.flush();
+    }
+    
+    void updateGameOverScreen(){
+        screen.setTextPosition(0,0);
+        screen.setTextColor(10);
+        screen.println("You died...");
+        if(newHighScore) screen.println("** New High Score!! **");
+        screen.println("High Score: " + save.score);
+        screen.println("Score: " + distance/10);
+        screen.println("Coins: " + torCoins);
+        screen.println("Kills: " + kills);
+        screen.println("Bonus coins: " + (kills * 2));
+        if(Button.C.justPressed()) resetGame();
+        screen.flush();
+    }
+    
+    void resetGame(){
+        torCoins += (kills * 2);
+        playerRun();
+        tor.y = 100;
+        preStart = true;
+        torMaxJump = 1;
+        torJump = torMaxJump;
+        torHits = 3;
+        dashCharge = 50;
+        dashTime = dashCharge;
+        powerReady = 1;
+        arrowCoins();
+        tailor = false;
+        dead = false;
+        newHighScore = false;
     }
     
     // update is called by femto.Game every frame
     void update(){
         screen.clear(0);
         t += 2.0f;
+        
+        if(dead){
+            updateGameOverScreen();
+            return;
+        }
 
         if(title){
             drawGround();
@@ -546,20 +611,12 @@ class Main extends State {
             screen.cameraX = 0;
             screen.cameraY = 0;
             dieSound.play();
-            if(distance > save.score){
-                save.score = distance/10;
+            if((distance/10) > save.score){
+                newHighScore = true;
+                save.score = (distance/10);
                 save.saveCookie();
             }   
-            playerRun();
-            tor.y = 100;
-            preStart = true;
-            torMaxJump = 1;
-            torJump = torMaxJump;
-            torHits = 3;
-            dashCharge = 50;
-            dashTime = dashCharge;
-            powerReady = 1;
-            arrowCoins();
+            dead = true;
             return;
         }
         
