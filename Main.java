@@ -350,7 +350,7 @@ class Main extends State {
             case 3:
                 return "This one links some memories.\nThe Hero suit!";
             default:
-                return "Press [B] to return to Power Up shop.";
+                return "[B] to return to Power Up shop.";
         }
     }
     
@@ -361,9 +361,7 @@ class Main extends State {
         screen.fillRect(0, 138, 230, 50, 0);
         drawTrees();
         
-        screen.setTextPosition(62, 0);
         screen.setTextColor(6);
-        screen.println("Press [C] to start.");
         screen.setTextPosition(0, 10);
         screen.println("Coins: " + torCoins);
         if(Button.B.justPressed()) {
@@ -388,7 +386,7 @@ class Main extends State {
                 message = vanityMessage();
             }
             
-            if(Button.C.justPressed()) {
+            if(Button.A.justPressed()) {
                 switch(vanity){
                     case 1:
                         if(!vanityManager.hasWizHat){
@@ -428,11 +426,13 @@ class Main extends State {
                 }
             }
         }else{
+            screen.setTextPosition(62, 0);
+            screen.println("Press [C] to start.");
             drawUpgrades();
             drawPowerBox();
             drawTorHits();
             drawJumps();
-            message = "Press [B] to go to tailor.\nPress [<-] or [->] to select power up.\n[A] to purchase.";
+            message = "[B] Go to tailor.\n[<-] or [->] Select power up.\n[A] to purchase.";
             if(Button.Right.justPressed()){
                 if(powerReady == 2) powerReady = 0;
                 else powerReady++;
@@ -476,15 +476,24 @@ class Main extends State {
                 break;
             case 1:
                 wizHat.draw(screen, tor.x, tor.y);
-                if(tailor) screen.println("Cost: 500");
+                if(tailor){
+                    if(!vanityManager.hasWizHat)screen.println("$500 : [A] Purchase?");
+                    else screen.println("[B] to Wear");
+                } 
                 break;
             case 2:
                 fishBowl.draw(screen, tor.x, tor.y);
-                if(tailor) screen.println("Cost: 750");
+                if(tailor) {
+                    if(!vanityManager.hasFishBowl)screen.println("$750 : [A] Purchase?");
+                    else screen.println("[B] to Wear");
+                }
                 break;
             case 3:
                 hero.draw(screen, tor.x, tor.y);
-                if(tailor) screen.println("Cost: 1,000");
+                if(tailor) {
+                    if(!vanityManager.hasHero)screen.println("$1,000 : [A] Purchase?");
+                    else screen.println("[B] to Wear");
+                }
                 break;
         }
         if(!vanityCheck())lock.draw(screen, tor.x+tor.width()/2, tor.y+tor.height()/2);
@@ -579,8 +588,10 @@ class Main extends State {
         
         if(preStart){
             updateShop();
-            for(Coin c : coins){
-                c.draw(screen);
+            if(!tailor){
+                for(Coin c : coins){
+                    c.draw(screen);
+                }
             }
             screen.flush();
             return;
@@ -729,7 +740,8 @@ class Main extends State {
                     torHits = 0;
                     //SO DEAD. GameOver
                 }
-            }else if(tor.y < 20 || tor.y+tor.height() > 108 && tor.x+tor.width()/2 > door.x && doorshut){
+            }
+            if((tor.y < 20 || tor.y+tor.height() > 108) && (tor.x+tor.width()/2) > door.x && doorshut){
                 torHurt = cooldown;
                 torHits = 0;
                 //SO DEAD. GameOver
@@ -983,7 +995,7 @@ class Main extends State {
         
         if(!Button.B.isPressed() && dashing && torHurt <= 0){
             dashing = false;
-            playerJump();
+            //playerJump();
         }
         //END Input
         
@@ -1023,19 +1035,19 @@ class Main extends State {
     void drawUpgrades(){
         screen.setTextColor(10);
         screen.setTextPosition(10, 142);
-        screen.print("PWR");
+        screen.print("POWER");
         
-        screen.setTextPosition(34, 142);
-        screen.print("JMP");
+        screen.setTextPosition(54, 142);
+        screen.print("JUMP");
         
-        screen.setTextPosition(58, 142);
-        screen.print("HIT");
+        screen.setTextPosition(98, 142);
+        screen.print("HEALTH");
         
         for(int i = 0; i < 3; i++){
             if(i==powerReady){
-                screen.drawRect(24*i+8, 140, 20, 8, 5);
+                screen.drawRect(44*i+8, 140, 40, 8, 5);
             }else{
-                screen.drawRect(24*i+8, 140, 20, 8, 10);
+                screen.drawRect(44*i+8, 140, 40, 8, 10);
             }
         }
     }
