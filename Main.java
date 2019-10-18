@@ -919,7 +919,7 @@ class Main extends State {
                 if(!Button.Down.isPressed() ){
                     dys = 0;
                     torJump = torMaxJump;
-                    if(!dashing && torHurt <= 0){
+                    if(!dashing){
                         playerRun();
                     }
                     return true;
@@ -978,7 +978,7 @@ class Main extends State {
                     powerUp.play();
                     break;
                 case 1:
-                    if(torMaxJump < 50) torMaxJump++;
+                    if(torMaxJump < 20) torMaxJump++;
                     torJump = torMaxJump;
                     powerReady = -1;
                     powerUp.play();
@@ -995,7 +995,7 @@ class Main extends State {
         
         if(!Button.B.isPressed() && dashing && torHurt <= 0){
             dashing = false;
-            //playerJump();
+            playerJump();
         }
         //END Input
         
