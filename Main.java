@@ -85,6 +85,7 @@ class Main extends State {
     Spikes spike;
     boolean[] batDead;
     Coin[] coins;
+    Coin coinIcon;
     Door door;
     DungeonBackground dungeonBackground;
     FrontBackground frontBackground;
@@ -190,6 +191,9 @@ class Main extends State {
 
         coffee = new Coffee();
         coffee.idle();
+        
+        coinIcon = new Coin();
+        coinIcon.coin();
         
         subInit();
     }
@@ -362,8 +366,7 @@ class Main extends State {
         drawTrees();
         
         screen.setTextColor(6);
-        screen.setTextPosition(0, 10);
-        screen.println("Coins: " + torCoins);
+        
         if(Button.B.justPressed()) {
             tailor = !tailor;
             if(tailor){
@@ -414,7 +417,7 @@ class Main extends State {
                         if(!vanityManager.hasHero){
                             if(torCoins >= 1000){
                                 torCoins -= 1000;
-                                vanityManager.hasFishBowl = true;
+                                vanityManager.hasHero = true;
                                 vanityManager.saveCookie();
                             }else{
                                 message = message + "\nYou're short " + (1000 - torCoins) + " coins.";
@@ -466,9 +469,16 @@ class Main extends State {
         }
     
         
-        if (tailor) screen.setTextPosition(0, 138);
-        else screen.setTextPosition(0, 16);
-        
+        if (tailor) {
+            if(vanity > 0) {
+                coinIcon.draw(screen, 0, 138);
+                screen.setTextPosition(10, 140);
+            }else screen.setTextPosition(0, 140);
+        }else{
+            coinIcon.draw(screen, 0, 16);
+            screen.setTextPosition(10, 18);
+            screen.println(""+torCoins);
+        } 
         screen.setTextColor(10);
         switch(vanity){
             case 0: 
@@ -477,21 +487,21 @@ class Main extends State {
             case 1:
                 wizHat.draw(screen, tor.x, tor.y);
                 if(tailor){
-                    if(!vanityManager.hasWizHat)screen.println("$500 : [A] Purchase?");
+                    if(!vanityManager.hasWizHat)screen.println("500 : [A] Purchase?");
                     else screen.println("[B] to Wear");
                 } 
                 break;
             case 2:
                 fishBowl.draw(screen, tor.x, tor.y);
                 if(tailor) {
-                    if(!vanityManager.hasFishBowl)screen.println("$750 : [A] Purchase?");
+                    if(!vanityManager.hasFishBowl)screen.println("750 : [A] Purchase?");
                     else screen.println("[B] to Wear");
                 }
                 break;
             case 3:
                 hero.draw(screen, tor.x, tor.y);
                 if(tailor) {
-                    if(!vanityManager.hasHero)screen.println("$1,000 : [A] Purchase?");
+                    if(!vanityManager.hasHero)screen.println("1,000 : [A] Purchase?");
                     else screen.println("[B] to Wear");
                 }
                 break;
