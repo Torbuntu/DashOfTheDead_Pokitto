@@ -321,7 +321,7 @@ class Main extends State {
         
         switch(stateManager){
             case 0://title
-                drawGround();
+                screen.clear(2);
                 updateTitle();
                 break;
             case 1://pre-run start
@@ -421,6 +421,11 @@ class Main extends State {
     
     //TITLE UPDATE
     void updateTitle(){
+        screen.fillRect(0, 0, 220, 40, 0);
+        screen.fillRect(0, 128, 230, 50, 0);
+        drawGround();
+        tor.draw(screen, 100, 100);
+        
         titleImage.draw(screen, 0,44);
         screen.setTextColor(6);
         
