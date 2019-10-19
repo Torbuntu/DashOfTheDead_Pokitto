@@ -25,6 +25,7 @@ import skins.Tor;
 import skins.WizardHat;
 import skins.FishBowl;
 import skins.Hero;
+import skins.Tintitto;
 
 import audio.BatSplat;
 import audio.CollectCoin;
@@ -53,10 +54,12 @@ class VanityManager extends femto.Cookie {
         begin("WIZ");
         begin("FISH");
         begin("HERO");
+        begin("TIN");
     }
     boolean hasWizHat;
     boolean hasFishBowl;
     boolean hasHero;
+    boolean hasTin;
 }
 
 class Main extends State {
@@ -100,6 +103,7 @@ class Main extends State {
     WizardHat wizHat;
     FishBowl fishBowl;
     Hero hero;
+    Tintitto tintitto;
     
     //end vanity
     
@@ -169,6 +173,7 @@ class Main extends State {
         wizHat = new WizardHat();
         fishBowl = new FishBowl();
         hero = new Hero();
+        tintitto = new Tintitto();
         
         lock = new Lock();
         
@@ -474,6 +479,7 @@ class Main extends State {
                 vanityManager.hasFishBowl = false;
                 vanityManager.hasWizHat = false;
                 vanityManager.hasHero = false;
+                vanityManager.hasTin = true;
                 vanityManager.saveCookie();
             }else{
                 stateManager = 1;//Go to preStart 
@@ -506,7 +512,7 @@ class Main extends State {
         if(tailor){
             if(Button.Right.justPressed()){
                 vanity++;
-                if(vanity > 3) vanity = 3;
+                if(vanity > 4) vanity = 4;
                 message = vanityMessage();
             }
             if(Button.Left.justPressed()){
@@ -549,6 +555,8 @@ class Main extends State {
                                 message = message + "\nYou're short " + (1000 - torCoins) + " coins.";
                             }
                         }
+                        break;
+                    case 4:
                         break;
                     default:
                     break;
@@ -636,6 +644,9 @@ class Main extends State {
                     else screen.println("[B] to Wear");
                 }
                 break;
+            case 4:
+                tintitto.draw(screen, tor.x, tor.y);
+                break;
         }
         if(!vanityCheck())lock.draw(screen, tor.x+tor.width()/2, tor.y+tor.height()/2);
         screen.println(message);
@@ -668,6 +679,8 @@ class Main extends State {
                 return vanityManager.hasFishBowl;
             case 3:
                 return vanityManager.hasHero;
+            case 4:
+                return vanityManager.hasTin;
             default:
                 return false;
         }
@@ -1205,6 +1218,9 @@ class Main extends State {
             case 3:
                 hero.draw(screen, tor.x, tor.y);
                 break;
+            case 4:
+                tintitto.draw(screen, tor.x, tor.y);
+                break;
         }
     }
     
@@ -1213,6 +1229,7 @@ class Main extends State {
         wizHat.run();
         fishBowl.run();
         hero.run();
+        tintitto.run();
     }
 
     void playerDash(){
@@ -1220,6 +1237,7 @@ class Main extends State {
         wizHat.dash();
         fishBowl.dash();
         hero.dash();
+        tintitto.dash();
     }
     
     void playerJump(){
@@ -1227,6 +1245,7 @@ class Main extends State {
         wizHat.jump();
         fishBowl.jump();
         hero.jump();
+        tintitto.jump();
     }
 
 }

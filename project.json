@@ -693,6 +693,17 @@
 		"/Lock.png": {
 			"sdcard": false,
 			"implements": ""
+		},
+		"/skins/Tintitto.aseprite": {
+			"sdcard": false
+		},
+		"/skins/Tintitto.json": {
+			"implements": "",
+			"sdcard": false
+		},
+		"/skins/Tintitto.png": {
+			"implements": "",
+			"sdcard": false
 		}
 	}
 }
