@@ -38,9 +38,13 @@ import audio.Splat;
 class HighScore extends femto.Cookie {
     HighScore(){
         super();
-        begin("DDScore");
+        begin("DIST");//distance
+        begin("KILL");
+        begin("COIN");
     }
-    int score;
+    int distScore;
+    int killScore;
+    int coins;
 }
 
 class VanityManager extends femto.Cookie {
@@ -56,6 +60,12 @@ class VanityManager extends femto.Cookie {
 }
 
 class Main extends State {
+    
+    static final var scoreManager = new HighScore();
+    static final var vanityManager = new VanityManager();
+
+    HiRes16Color screen; // the screenmode we want to draw with
+    //sounds
     Explode explode;
     Jump jumpSound;
     Hurt hurt;
@@ -64,20 +74,17 @@ class Main extends State {
     Die dieSound;
     Splat splat;
     BatSplat batSplat;
+    //end sounds
+    
+    int stateManager = 0;//0 title, 1 pre-run, 2 game run, 3 dead
     
     Vampyre vamp = new Vampyre();
     int zapTime;
     boolean vampDead = false;
-    
-    
-    static final var save = new HighScore();
-    static final var vanityManager = new VanityManager();
-
-    HiRes16Color screen; // the screenmode we want to draw with
 
     boolean newHighScore = false;
-    boolean jump = false, dashing = false, dashReady = true, ghoulDead = false, intro = true, preStart = true, coinIntro = true, doorshut = true, inDungeon = true, dead = false;
-    boolean menuCursor = false; //false = Game Start, true = Reset Data
+    boolean jump = false, dashing = false, dashReady = true, ghoulDead = false, intro = true, coinIntro = true, doorshut = true, inDungeon = true, dead = false;
+    boolean resetData = false; //false = Game Start, true = Reset Data
     Tor tor;
     Coffee coffee;
     Ghoul ghoul;
@@ -86,10 +93,6 @@ class Main extends State {
     boolean[] batDead;
     Coin[] coins;
     Coin coinIcon;
-    Door door;
-    DungeonBackground dungeonBackground;
-    FrontBackground frontBackground;
-    
     Lock lock;
     
     //VANITY
@@ -98,6 +101,9 @@ class Main extends State {
     FishBowl fishBowl;
     Hero hero;
     
+    //end vanity
+    
+    //Backgrounds
     CarpetA carpetA;
     CarpetB carpetB;
     int cpax;
@@ -106,7 +112,12 @@ class Main extends State {
     Rockway rockway;
     int rockwayX;
     
+    Door door;
+    DungeonBackground dungeonBackground;
+    FrontBackground frontBackground;
+    
     Platform platform;
+    //END Backgrounds
     
     float dxs, dys, torGravity;
     int dashTime, speed, powerReady = 1, torJump, dgnX, torHurt, distance, kills;
@@ -126,7 +137,6 @@ class Main extends State {
     int tax = 47, tbx = 108, tcx = 209;
     
     //title screen variables
-    boolean title = true;
     Title titleImage = new Title();
 
     public static void main(String[] args){
@@ -155,8 +165,6 @@ class Main extends State {
         
         torCoins = 0;
 
-       
-        
         //VANITY 
         tor = new Tor();
         wizHat = new WizardHat();
@@ -196,6 +204,7 @@ class Main extends State {
         coinIcon.coin();
         
         subInit();
+        stateManager = 0;
     }
     
     void subInit(){
@@ -207,6 +216,7 @@ class Main extends State {
         kills = 0;
         cooldown = 75;
         dgnX = 0;
+        rockwayX = -12;
         
         dashTime = dashCharge;
         speed = 1;
@@ -281,92 +291,189 @@ class Main extends State {
         }
     }
     
-    void arrowCoins(){
-        coins = new Coin[12];
-        for(int i = 0; i < 12; i++){
-            coins[i] = new Coin();
-            coins[i].coin();
-        }
-        
-        coins[0].x = 160;
-        coins[0].y = 75;
-        
-        coins[1].x = 170;
-        coins[1].y = 75;
-        
-        coins[2].x = 180;
-        coins[2].y = 75;
-        
-        coins[9].x = 190;
-        coins[9].y = 59;
-        coins[6].x = 190;
-        coins[6].y = 67;
-        coins[3].x = 190;
-        coins[3].y = 75;
-        coins[7].x = 190;
-        coins[7].y = 83;
-        coins[8].x = 190;
-        coins[8].y = 91;
-        
-        coins[10].x = 200;
-        coins[10].y = 67;
-        coins[11].x = 200;
-        coins[11].y = 83;
-        coins[4].x = 200;
-        coins[4].y = 75;
-        
-        coins[5].x = 210;
-        coins[5].y = 75;
-
-    }
-    
-    void generateCoffeeDrops(){
-        coffee.x = Math.random(220, 230);
-        coffee.y = Math.random(30, 120);
-    }
-    
     // Might help in certain situations
     void shutdown(){
         screen = null;
     }
     
-    boolean vanityCheck(){
-        switch(vanity){
-            case 0:
-                return true;
-            case 1:
-                return vanityManager.hasWizHat;
-            case 2:
-                return vanityManager.hasFishBowl;
-            case 3:
-                return vanityManager.hasHero;
-            default:
-                return false;
-        }
+    void resetGame(){
+        torCoins += (kills * 2);
+        playerRun();
+        tor.y = 100;
+        torMaxJump = 1;
+        torJump = torMaxJump;
+        torHits = 3;
+        dashCharge = 50;
+        dashTime = dashCharge;
+        powerReady = 1;
+        arrowCoins();
+        tailor = false;
+        dead = false;
+        newHighScore = false;
+        t = 0.0f;
+        stateManager = 1;
     }
     
-    String vanityMessage(){
-        switch(vanity){
-            case 1:
-                return "The Wizard Robes! With complementary\nKitty! No idea where he came from.";
-            case 2:
-                return "Fish Bowl. If you like to swim?";
-            case 3:
-                return "This one links some memories.\nThe Hero suit!";
-            default:
-                return "[B] to return to Power Up shop.";
+    // update is called by femto.Game every frame
+    void update(){
+        screen.clear(0);
+        t += 2.0f;
+        
+        switch(stateManager){
+            case 0://title
+                drawGround();
+                updateTitle();
+                break;
+            case 1://pre-run start
+                updateShop();
+                break;
+            case 2://running
+                updateScreenShake();
+                
+                //Tor dies here.
+                if(torHits <= 0) {
+                    screen.cameraX = 0;
+                    screen.cameraY = 0;
+                    dieSound.play();
+                    if((distance/10) > scoreManager.distScore){
+                        newHighScore = true;
+                        scoreManager.distScore = (distance/10);
+                    }
+                    if(kills > scoreManager.killScore) scoreManager.killScore = kills;
+                    scoreManager.saveCookie();
+                    stateManager = 3;//Game Over!
+                    return;
+                }
+                
+                distance+=1+speed;
+                if(distance > nextDifficulty) {
+                    difficulty++;
+                    nextDifficulty += 1000;
+                    door.x = 220;
+                    door.closed();
+                    doorshut = true;
+                }
+                
+                //Dungeon background
+                updateDrawDungeon();
+                //END Dungeon background
+                
+                //SPIKES
+                updateDrawSpikes();
+                //END SPIKES
+                
+                //GHOUL
+                updateGhoul();
+                //END GHOUL
+                
+                //BAT
+                updateBats();
+                //END BAT
+                
+                //update VAMPYRE
+                updateVampire();
+                //END VAMPYRE
+                
+                //START PLATFORM
+                platform.x -= 1+speed;
+                if(platform.x < -200){
+                    platform.x = Math.random(220, 500);
+                    platform.y = Math.random(38, 100);
+                }
+                platform.draw(screen);
+                //END PLATFORM
+                
+                //START Draw BG
+                screen.fillRect(0, 138, 230, 50, 0);
+                //END Draw BG
+                if(dashing)speed = 3;
+                else speed = 1;
+                
+                updateTor();
+                
+                checkGhoulGrabTor();
+        
+                drawPowerBox();
+                drawTorHits();
+                drawJumps();
+                
+                checkCoffeeCollect();
+                updateCoffeeDrops();
+                drawCoffeeDrops();
+                
+                updateCoins();
+        
+                drawUpgrades();
+                
+                //DOOR
+                updateDrawDoor();
+                //DOOR
+                
+                drawGameInfo();
+                break;
+            case 3://dead
+                updateGameOverScreen();
+                break;
+        }
+        screen.flush();
+    }
+    //END UPDATE
+    
+    //TITLE UPDATE
+    void updateTitle(){
+        titleImage.draw(screen, 0,44);
+        screen.setTextColor(6);
+        
+        screen.setTextPosition(0,0);
+        screen.println("Best run: " + scoreManager.distScore);
+        
+        screen.setTextPosition((screen.width() - screen.textWidth("Game Start"))/2,150);
+        screen.println("Game Start");
+        
+        screen.setTextPosition((screen.width() - screen.textWidth("Reset data"))/2, 160);
+        screen.println("Reset data");
+                
+        screen.setTextColor(10);
+        if(resetData){
+            screen.setTextPosition(60, 160);
+            screen.println("->");
+        }else{
+            screen.setTextPosition(60, 150);
+            screen.println("->");
+        }
+        
+        //Toggle cursor
+        if(Button.Down.justPressed() || Button.Up.justPressed()) resetData = !resetData;
+        
+        if(Button.C.justPressed()){
+            if(resetData){
+                scoreManager.distScore = 0;
+                scoreManager.coins = 0;
+                scoreManager.killScore = 0;
+                scoreManager.saveCookie();
+                
+                vanityManager.hasFishBowl = false;
+                vanityManager.hasWizHat = false;
+                vanityManager.hasHero = false;
+                vanityManager.saveCookie();
+            }else{
+                stateManager = 1;//Go to preStart 
+            }
         }
     }
-    
-    void updateShop(){
+    //END TITLE UPDATE
+   
+    //SHOP UPDATE
+     void updateShop(){
         
         drawGround();
         screen.fillRect(0, 0, 220, 40, 0);
         screen.fillRect(0, 138, 230, 50, 0);
         drawTrees();
         
-        screen.setTextColor(6);
+        screen.setTextColor(10);
         
+        //B button switches shop screens.
         if(Button.B.justPressed()) {
             tailor = !tailor;
             if(tailor){
@@ -428,14 +535,22 @@ class Main extends State {
                     break;
                 }
             }
+            coinIcon.draw(screen, 0, 8);
+            screen.setTextPosition(10, 10);
+            screen.println(""+torCoins);
+            if(vanity > 0) {
+                coinIcon.draw(screen, 0, 30);
+                screen.setTextPosition(10, 32);
+            }else screen.setTextPosition(0, 32);
         }else{
             screen.setTextPosition(62, 0);
             screen.println("Press [C] to start.");
+            
             drawUpgrades();
             drawPowerBox();
             drawTorHits();
             drawJumps();
-            message = "[B] Go to tailor.\n[<-] or [->] Select power up.\n[A] to purchase.";
+            
             if(Button.Right.justPressed()){
                 if(powerReady == 2) powerReady = 0;
                 else powerReady++;
@@ -462,24 +577,21 @@ class Main extends State {
                         break;
                 }
             }
-           if(Button.C.justPressed() && vanityCheck()) {
-                preStart = false;
+            if(Button.C.justPressed() && vanityCheck()) {
                 subInit();
+                stateManager = 2;//START GAME
+            }
+            
+            coinIcon.draw(screen, 0, 8);
+            screen.setTextPosition(10, 10);
+            screen.println(""+torCoins);
+            screen.println("Best run: " + scoreManager.distScore);
+            message = "[B] Go to tailor.\n[<-] or [->] Select power up.\n[A] to purchase.";
+            for(Coin c : coins){
+                c.draw(screen);
             }
         }
-    
         
-        if (tailor) {
-            if(vanity > 0) {
-                coinIcon.draw(screen, 0, 138);
-                screen.setTextPosition(10, 140);
-            }else screen.setTextPosition(0, 140);
-        }else{
-            coinIcon.draw(screen, 0, 16);
-            screen.setTextPosition(10, 18);
-            screen.println(""+torCoins);
-        } 
-        screen.setTextColor(10);
         switch(vanity){
             case 0: 
                 tor.draw(screen);
@@ -509,104 +621,98 @@ class Main extends State {
         if(!vanityCheck())lock.draw(screen, tor.x+tor.width()/2, tor.y+tor.height()/2);
         screen.println(message);
     }
+    //END SHOP UPDATE
     
-    void updateTitle(){
-        titleImage.draw(screen, 0,44);
-        screen.setTextColor(6);
-        screen.setTextPosition(0,0);
-        screen.println("High score: " + save.score);
-        screen.setTextPosition(66,150);
-        screen.println("Game Start");
-        screen.setTextPosition(66, 160);
-        screen.println("Reset data");
-                
-                
-        screen.setTextColor(10);
-        if(menuCursor){
-            screen.setTextPosition(52, 160);
-            screen.println("->");
-        }else{
-            screen.setTextPosition(52, 150);
-            screen.println("->");
-        }
-        
-        if(Button.Down.justPressed() || Button.Up.justPressed()) menuCursor = !menuCursor;
-        
-        if(Button.C.justPressed()){
-            if(menuCursor){
-                save.score = 0;
-                save.saveCookie();
-                
-                vanityManager.hasFishBowl = false;
-                vanityManager.hasWizHat = false;
-                vanityManager.hasHero = false;
-                vanityManager.saveCookie();
-            }else{
-                preStart = true;
-                title = false;
-            }
-        }
-        screen.flush();
-    }
-    
+    //GAME OVER UPDATE
     void updateGameOverScreen(){
         screen.setTextPosition(0,0);
         screen.setTextColor(10);
         screen.println("You died...");
-        if(newHighScore) screen.println("** New High Score!! **");
-        screen.println("High Score: " + save.score);
-        screen.println("Score: " + distance/10);
+        if(newHighScore) screen.println("** New Best Run!! **");
+        screen.println("Best run: " + scoreManager.distScore);
+        screen.println("This run: " + distance/10);
         screen.println("Coins: " + torCoins);
         screen.println("Kills: " + kills);
         screen.println("Bonus coins: " + (kills * 2));
         if(Button.C.justPressed()) resetGame();
         screen.flush();
     }
+    //END GAME OVER UPDATE
     
-    void resetGame(){
-        torCoins += (kills * 2);
-        playerRun();
-        tor.y = 100;
-        preStart = true;
-        torMaxJump = 1;
-        torJump = torMaxJump;
-        torHits = 3;
-        dashCharge = 50;
-        dashTime = dashCharge;
-        powerReady = 1;
-        arrowCoins();
-        tailor = false;
-        dead = false;
-        newHighScore = false;
+    boolean vanityCheck(){
+        switch(vanity){
+            case 0:
+                return true;
+            case 1:
+                return vanityManager.hasWizHat;
+            case 2:
+                return vanityManager.hasFishBowl;
+            case 3:
+                return vanityManager.hasHero;
+            default:
+                return false;
+        }
     }
     
-    // update is called by femto.Game every frame
-    void update(){
-        screen.clear(0);
-        t += 2.0f;
-        
-        if(dead){
-            updateGameOverScreen();
-            return;
+    String vanityMessage(){
+        switch(vanity){
+            case 1:
+                return "The Wizard Robes! With complementary\nKitty! No idea where he came from.";
+            case 2:
+                return "Fish Bowl. If you like to swim?";
+            case 3:
+                return "This one links some memories.\nThe Hero suit!";
+            default:
+                return "[B] to return to Power Up shop.";
         }
-
-        if(title){
-            drawGround();
-            updateTitle();
-            return;
+    }
+    
+    void updateDrawDungeon(){
+        dgnX -= 1+speed;
+        if(dgnX <= -220) {
+            dgnX = 0;
+            intro = false;   
         }
-        
-        if(preStart){
-            updateShop();
-            if(!tailor){
-                for(Coin c : coins){
-                    c.draw(screen);
-                }
+        if(dgnX > -220 && intro){
+            introGround();
+            frontBackground.draw(screen, dgnX+96, 140-frontBackground.height());
+            for(int i = 0; i < 4; i++){
+                dungeonBackground.draw(screen, dgnX+220, i * 44);
             }
-            screen.flush();
-            return;
+            screen.fillRect(dgnX+220, 128, 400, 10, 2);
+        }else{
+            for(int i = 0; i < 4; i++){
+                dungeonBackground.draw(screen, dgnX, i * 44);
+                dungeonBackground.draw(screen, dgnX+220, i * 44);
+            }
+            screen.fillRect(0, 128, 220, 10, 2);
+            drawCarpet();
         }
-        
+    }
+    
+    void updateDrawSpikes(){
+        if(difficulty >= 10){
+            spike.x -= 1+speed;
+            
+            if(spike.x < -140){
+                initSpike();
+            } 
+            if(spike.y == 0){
+                spike.setFlipped(true);
+            }else{
+                spike.setFlipped(false);
+            }
+            
+            spike.draw(screen);
+            if(collidesWithTor(spike.x, spike.y, spike.width(), spike.height())){
+                torHurt = cooldown;
+                torHits = 0;
+                //SO DEAD. GameOver if touch any spikes.
+            }
+        }
+    }
+    
+    void updateScreenShake(){
         if(shake > 0.0){
             if(dashing){
                 screen.cameraX = Math.cos(t) * 1;
@@ -627,116 +733,9 @@ class Main extends State {
             screen.cameraX = 0;
             screen.cameraY = 0;
         }
-        
-        if(torHits <= 0) {
-            screen.cameraX = 0;
-            screen.cameraY = 0;
-            dieSound.play();
-            if((distance/10) > save.score){
-                newHighScore = true;
-                save.score = (distance/10);
-                save.saveCookie();
-            }   
-            dead = true;
-            return;
-        }
-        
-        distance+=1+speed;
-        if(distance > nextDifficulty) {
-            difficulty++;
-            nextDifficulty += 1000;
-            door.x = 220;
-            door.closed();
-            doorshut = true;
-        }
-        //Dungeon background
-        dgnX -= 1+speed;
-        if(dgnX <= -220) {
-            dgnX = 0;
-            intro = false;   
-        }
-        if(dgnX > -220 && intro){
-            frontBackground.draw(screen, dgnX, 138-frontBackground.height());
-            for(int i = 0; i < 4; i++){
-                dungeonBackground.draw(screen, dgnX+220, i * 44);
-            }
-            screen.fillRect(dgnX+220, 128, 400, 10, 2);
-        }else{
-            for(int i = 0; i < 4; i++){
-                dungeonBackground.draw(screen, dgnX, i * 44);
-                dungeonBackground.draw(screen, dgnX+220, i * 44);
-            }
-            screen.fillRect(0, 128, 220, 10, 2);
-            drawCarpet();
-        }
-        //END Dungeon background
-        
-        //SPIKES
-        if(difficulty >= 10){
-            spike.x -= 1+speed;
-            
-            if(spike.x < -140){
-                initSpike();
-            } 
-            if(spike.y == 0){
-                spike.setFlipped(true);
-            }else{
-                spike.setFlipped(false);
-            }
-            
-            spike.draw(screen);
-            if(collidesWithTor(spike.x, spike.y, spike.width(), spike.height())){
-                torHurt = cooldown;
-                torHits = 0;
-                //SO DEAD. GameOver if touch any spikes.
-            }
-        }
-        //END SPIKES
-        
-        //GHOUL
-        updateGhoul();
-        //END GHOUL
-        
-        //BAT
-        updateBats();
-        //END BAT
-        
-        //START PLATFORM
-        platform.x -= 1+speed;
-        if(platform.x < -200){
-            platform.x = Math.random(220, 500);
-            platform.y = Math.random(38, 100);
-        }
-        platform.draw(screen);
-        //END PLATFORM
-        
-        //START Draw BG
-        screen.fillRect(0, 138, 230, 50, 0);
-        //END Draw BG
-        if(dashing)speed = 3;
-        else speed = 1;
-        
-        updateTor();
-        
-        //update VAMPYRE
-        updateVampire();
-        //END VAMPYRE
-        
-        checkGhoulGrabTor();
-
-        drawPowerBox();
-        drawTorHits();
-        drawJumps();
-        
-        checkCoffeeCollect();
-        updateCoffeeDrops();
-        drawCoffeeDrops();
-        
-        updateCoins();
-
-        drawUpgrades();
-        
-        //DOOR
+    }
+    
+    void updateDrawDoor(){
         if(door.x > -10){
             door.x -= 1 + speed;
             if(tor.y > 20 && tor.y + tor.height() < 108 && tor.x+tor.width()/2 > door.x && doorshut){
@@ -756,19 +755,17 @@ class Main extends State {
                 torHits = 0;
                 //SO DEAD. GameOver
             }
-            
             door.draw(screen);
         }
-        //DOOR
-        
+    }
+    
+    void drawGameInfo(){
         //Draw position
         screen.setTextPosition(0, 0);
         screen.setTextColor(10);
         screen.println("Distance: "+distance/10);
         screen.println("Kills: " + kills);
         screen.println("Coins: " + torCoins);
-
-        screen.flush();
     }
     
     boolean collidesWithTor(float x, float y, float width, float height){
@@ -939,7 +936,6 @@ class Main extends State {
         return false;
     }
     
-    
     void updateTor(){
         if(jump && !dashing){
             dys += torGravity;//Gravity
@@ -1030,6 +1026,11 @@ class Main extends State {
         tor.y += dys;
         drawPlayer();
     }
+    
+    void generateCoffeeDrops(){
+        coffee.x = Math.random(220, 230);
+        coffee.y = Math.random(30, 120);
+    }
 
     void updateCoffeeDrops(){
         coffee.x-= 1+speed;
@@ -1040,6 +1041,45 @@ class Main extends State {
     void drawCoffeeDrops(){
         coffee.y += Math.random(-1, 2);
         coffee.draw(screen);
+    }
+    
+    void arrowCoins(){
+        coins = new Coin[12];
+        for(int i = 0; i < 12; i++){
+            coins[i] = new Coin();
+            coins[i].coin();
+        }
+        
+        coins[0].x = 160;
+        coins[0].y = 75;
+        
+        coins[1].x = 170;
+        coins[1].y = 75;
+        
+        coins[2].x = 180;
+        coins[2].y = 75;
+        
+        coins[9].x = 190;
+        coins[9].y = 59;
+        coins[6].x = 190;
+        coins[6].y = 67;
+        coins[3].x = 190;
+        coins[3].y = 75;
+        coins[7].x = 190;
+        coins[7].y = 83;
+        coins[8].x = 190;
+        coins[8].y = 91;
+        
+        coins[10].x = 200;
+        coins[10].y = 67;
+        coins[11].x = 200;
+        coins[11].y = 83;
+        coins[4].x = 200;
+        coins[4].y = 75;
+        
+        coins[5].x = 210;
+        coins[5].y = 75;
+
     }
     
     void drawUpgrades(){
@@ -1080,8 +1120,15 @@ class Main extends State {
         }
     }
     
+    void introGround(){
+        rockwayX-=1 + speed;
+        if(rockwayX <= -220)rockwayX = 0;
+        for(int i = 0; i < 5; i++){
+            rockway.draw(screen, 22 * i + rockwayX, 128);
+        }
+    }
+    
     void drawGround(){
-        
         rockwayX-=1;
         if(rockwayX <= -220)rockwayX = 0;
         for(int i = 0; i < 20; i++){
@@ -1115,6 +1162,8 @@ class Main extends State {
         treeB.draw(screen, tbx, 129-treeB.height());
         treeC.draw(screen, tcx, 129-treeC.height());
     }
+    
+    
     
     void drawPlayer(){
         if(vanity == 3 && torHurt > 0 ){
