@@ -425,8 +425,18 @@ class Main extends State {
         drawGround();
         bats[0].setMirrored(true);
         bats[0].draw(screen, 70, 92);
-        if(t > 150.0) bats[0].draw(screen, 52, 120);
-        if(t > 300.0) bats[0].draw(screen, 65, 101);
+        if(t > 500.0) bats[0].draw(screen, 52, 120);
+        if(t > 1000.0) bats[0].draw(screen, 68, 112);
+        if(t > 1500.0) bats[0].draw(screen, 50, 106);
+        if(t > 2000.0) bats[0].draw(screen, 40, 92);
+        if(t > 2500.0) bats[0].draw(screen, 30, 110);
+        if(t > 3000.0) bats[0].draw(screen, 22, 98);
+        
+        if(t > 3500.0) ghoul.draw(screen, 180, 28);
+        if(t > 4000.0) {
+            vamp.zap();
+            vamp.draw(screen, 170, 100);
+        }
         
         tor.draw(screen, 86, 100);
         
@@ -791,7 +801,6 @@ class Main extends State {
                     vampDead = false;
                 }
             }
-            
             
             if(!vampDead){
                 if(!(vamp.x <= tor.x+tor.width())){
