@@ -159,7 +159,6 @@ class Main extends State {
         dieSound = new Die(3);
         //END Sounds
         
-        
         screen = new HiRes16Color(JavaDashPalette.palette(), TIC80.font());
         cursor = 0;
         
@@ -424,9 +423,14 @@ class Main extends State {
         screen.fillRect(0, 0, 220, 40, 0);
         screen.fillRect(0, 128, 230, 50, 0);
         drawGround();
-        tor.draw(screen, 100, 100);
+        bats[0].setMirrored(true);
+        bats[0].draw(screen, 70, 92);
+        if(t > 150.0) bats[0].draw(screen, 52, 120);
+        if(t > 300.0) bats[0].draw(screen, 65, 101);
         
-        titleImage.draw(screen, 0,44);
+        tor.draw(screen, 86, 100);
+        
+        titleImage.draw(screen, (screen.width() - titleImage.width()) / 2,44);
         screen.setTextColor(6);
         
         screen.setTextPosition(0,0);
