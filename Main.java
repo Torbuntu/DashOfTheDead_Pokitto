@@ -132,7 +132,8 @@ class Main extends State {
     //prestart screen variables
     int cursor, shopCharge = 50, shopJump = 1, shopHits = 3;
     boolean tailor = false;
-    String message = "";
+    String message = "", tipText = "";
+    String[] tips;
     int sbx = 0;
     TreeA treeA;
     TreeB treeB;
@@ -167,6 +168,13 @@ class Main extends State {
         cursor = 0;
         
         torCoins = 0;
+        
+        tips = new String[5];
+        tips[0] = "Try dashing the middle of doors";
+        tips[1] = "Dashing enemies will give you\nbonus coins";
+        tips[2] = "Make sure to watch your power meter";
+        tips[3] = "Time your powerups right to get\nfarther";
+        tips[4] = "Try purchasing powerups";
 
         //VANITY 
         tor = new Tor();
@@ -315,6 +323,8 @@ class Main extends State {
         dead = false;
         newHighScore = false;
         t = 0.0f;
+        screen.textRightLimit = 220;
+        screen.textLeftLimit = 0;
         stateManager = 1;
     }
     
@@ -346,6 +356,7 @@ class Main extends State {
                     if(kills > scoreManager.killScore) scoreManager.killScore = kills;
                     scoreManager.saveCookie();
                     stateManager = 3;//Game Over!
+                    tipText =(String)tips[Math.random(0, 5)];
                     return;
                 }
                 
@@ -469,7 +480,7 @@ class Main extends State {
         //Toggle cursor
         if(Button.Down.justPressed() || Button.Up.justPressed()) resetData = !resetData;
         
-        if(Button.C.justPressed()){
+        if(Button.C.justPressed() || Button.A.justPressed()){
             if(resetData){
                 scoreManager.distScore = 0;
                 scoreManager.coins = 0;
@@ -479,7 +490,7 @@ class Main extends State {
                 vanityManager.hasFishBowl = false;
                 vanityManager.hasWizHat = false;
                 vanityManager.hasHero = false;
-                vanityManager.hasTin = true;
+                vanityManager.hasTin = false;
                 vanityManager.saveCookie();
             }else{
                 stateManager = 1;//Go to preStart 
@@ -557,6 +568,15 @@ class Main extends State {
                         }
                         break;
                     case 4:
+                        if(!vanityManager.hasTin){
+                            if(torCoins >= 1250){
+                                torCoins -= 1250;
+                                vanityManager.hasTin = true;
+                                vanityManager.saveCookie();
+                            }else{
+                                message = message + "\nYou're short" + (1250 - torCoins) + " coins.";
+                            }
+                        }
                         break;
                     default:
                     break;
@@ -646,6 +666,10 @@ class Main extends State {
                 break;
             case 4:
                 tintitto.draw(screen, tor.x, tor.y);
+                if(tailor) {
+                    if(!vanityManager.hasTin)screen.println("1,250 : [A] Purchase?");
+                    else screen.println("[B] to Wear");
+                }
                 break;
         }
         if(!vanityCheck())lock.draw(screen, tor.x+tor.width()/2, tor.y+tor.height()/2);
@@ -655,17 +679,41 @@ class Main extends State {
     
     //GAME OVER UPDATE
     void updateGameOverScreen(){
-        screen.setTextPosition(0,0);
-        screen.setTextColor(10);
-        screen.println("You died...");
-        if(newHighScore) screen.println("** New Best Run!! **");
+        screen.setTextColor(7);
+        if(newHighScore) {
+            screen.setTextPosition((screen.width() - screen.textWidth("** New Best Run!! **"))/2,0);
+            screen.println("** New Best Run!! **");
+        }else{
+            screen.setTextPosition((screen.width() - screen.textWidth("The dungeon consumed you"))/2, 0);
+            screen.println("The dungeon consumed you");
+        }
+        
+        //draw message box
+        screen.drawRect(10, 32, 200, 90, 5);
+        screen.fillRect(11, 33, 199, 89, 12);
+        
+        screen.drawRect(10, 130, 200, 30, 5);
+        screen.fillRect(11, 131, 199, 29, 12);
+        //end box
+        
+        screen.setTextColor(6);
+        screen.setTextPosition(60, 42);
+        screen.textLeftLimit = 60;
+        
         screen.println("Best run: " + scoreManager.distScore);
         screen.println("This run: " + distance/10);
         screen.println("Coins: " + torCoins);
         screen.println("Kills: " + kills);
         screen.println("Bonus coins: " + (kills * 2));
+        screen.drawLine(60, 80, 150, 80, 7, false);
+        screen.println("");
+        screen.println("Total coins: " + (torCoins + (kills * 2)));
+        
+        screen.textLeftLimit = 16;
+        screen.textRightLimit = 190;
+        screen.setTextPosition(16, 134);
+        screen.println(tipText);
         if(Button.C.justPressed()) resetGame();
-        screen.flush();
     }
     //END GAME OVER UPDATE
     
@@ -694,6 +742,8 @@ class Main extends State {
                 return "Fish Bowl. If you like to swim?";
             case 3:
                 return "This one links some memories.\nThe Hero suit!";
+            case 4:
+                return "Adventure awaits! Nice hair cut.";
             default:
                 return "[B] to return to Power Up shop.";
         }
