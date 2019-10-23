@@ -26,6 +26,8 @@ import skins.WizardHat;
 import skins.FishBowl;
 import skins.Hero;
 import skins.Tintitto;
+import skins.Robot;
+import skins.Fireman;
 
 import audio.BatSplat;
 import audio.CollectCoin;
@@ -37,9 +39,9 @@ import audio.PowerUp;
 import audio.Splat;
 
 class HighScore extends femto.Cookie {
-    HighScore(){
+    HighScore() {
         super();
-        begin("DIST");//distance
+        begin("DIST"); //distance
         begin("KILL");
         begin("COIN");
     }
@@ -49,23 +51,29 @@ class HighScore extends femto.Cookie {
 }
 
 class VanityManager extends femto.Cookie {
-    VanityManager(){
+    VanityManager() {
         super();
         begin("WIZ");
         begin("FISH");
         begin("HERO");
         begin("TIN");
+        begin("ROBO");
+        begin("FIRE");
     }
     boolean hasWizHat;
     boolean hasFishBowl;
     boolean hasHero;
     boolean hasTin;
+    boolean hasRobo;
+    boolean hasFire;
 }
 
 class Main extends State {
-    
-    static final var scoreManager = new HighScore();
-    static final var vanityManager = new VanityManager();
+
+    static final
+    var scoreManager = new HighScore();
+    static final
+    var vanityManager = new VanityManager();
 
     HiRes16Color screen; // the screenmode we want to draw with
     //sounds
@@ -78,9 +86,9 @@ class Main extends State {
     Splat splat;
     BatSplat batSplat;
     //end sounds
-    
-    int stateManager = 0;//0 title, 1 pre-run, 2 game run, 3 dead
-    
+
+    int stateManager = 0; //0 title, 1 pre-run, 2 game run, 3 dead
+
     Vampyre vamp = new Vampyre();
     int zapTime;
     boolean vampDead = false;
@@ -97,37 +105,39 @@ class Main extends State {
     Coin[] coins;
     Coin coinIcon;
     Lock lock;
-    
+
     //VANITY
     int vanity = 0;
     WizardHat wizHat;
     FishBowl fishBowl;
     Hero hero;
     Tintitto tintitto;
-    
+    Robot robot;
+    Fireman fireman;
+
     //end vanity
-    
+
     //Backgrounds
     CarpetA carpetA;
     CarpetB carpetB;
     int cpax;
     int cpbx;
-    
+
     Rockway rockway;
     int rockwayX;
-    
+
     Door door;
     DungeonBackground dungeonBackground;
     FrontBackground frontBackground;
-    
+
     Platform platform;
     //END Backgrounds
-    
+
     float dxs, dys, torGravity;
     int dashTime, speed, powerReady = 1, torJump, dgnX, torHurt, distance, kills;
     float t, shake, doorShake;
-    int difficulty, nextDifficulty, cooldown, dashCharge = 50, torMaxJump = 1, torHits = 3 ;
-    
+    int difficulty, nextDifficulty, cooldown, dashCharge = 50, torMaxJump = 1, torHits = 3;
+
     static int torCoins;
     //prestart screen variables
     int cursor, shopCharge = 50, shopJump = 1, shopHits = 3;
@@ -138,43 +148,45 @@ class Main extends State {
     TreeA treeA;
     TreeB treeB;
     TreeC treeC;
-    
+
     int tax = 47, tbx = 108, tcx = 209;
-    
+
     //title screen variables
     Title titleImage = new Title();
 
-    public static void main(String[] args){
+    public static void main(String[] args) {
         Mixer.init(8000);
-        Game.run( TIC80.font(), new Main() );
+        Game.run(TIC80.font(), new Main());
     }
-    
-    void init(){
+
+    void init() {
         //Sounds
         explode = new Explode(0);
         jumpSound = new Jump(0);
-        
+
         hurt = new Hurt(1);
         splat = new Splat(1);
         batSplat = new BatSplat(1);
-        
+
         powerUp = new PowerUp(2);
         coinCollect = new CollectCoin(2);
-        
+
         dieSound = new Die(3);
         //END Sounds
-        
+
         screen = new HiRes16Color(JavaDashPalette.palette(), TIC80.font());
         cursor = 0;
-        
+
         torCoins = 0;
-        
-        tips = new String[5];
+
+        tips = new String[7];
         tips[0] = "Try dashing the middle of doors";
         tips[1] = "Dashing enemies will give you\nbonus coins";
         tips[2] = "Make sure to watch your power meter";
-        tips[3] = "Time your powerups right to get\nfarther";
-        tips[4] = "Try purchasing powerups";
+        tips[3] = "Time your powerups right\nto get farther";
+        tips[4] = "Try purchasing powerups\nto get a head start";
+        tips[5] = "Careful, you can't dash\nwhile hurt";
+        tips[6] = "Do you have all the\nvanity suits?";
 
         //VANITY 
         tor = new Tor();
@@ -182,11 +194,13 @@ class Main extends State {
         fishBowl = new FishBowl();
         hero = new Hero();
         tintitto = new Tintitto();
-        
+        robot = new Robot();
+        fireman = new Fireman();
+
         lock = new Lock();
-        
+
         //END Vanity
-        
+
         ghoul = new Ghoul();
 
         frontBackground = new FrontBackground();
@@ -194,33 +208,33 @@ class Main extends State {
         rockway = new Rockway();
         treeA = new TreeA();
         treeA.idle();
-        treeA.y = 129-treeA.height();
-        
+        treeA.y = 129 - treeA.height();
+
         carpetA = new CarpetA();
-        
+
         carpetB = new CarpetB();
-        
+
         treeB = new TreeB();
         treeC = new TreeC();
-        
+
         door = new Door();
         door.x = 220;
-        
+
         platform = new Platform();
         platform.idle();
 
         coffee = new Coffee();
         coffee.idle();
-        
+
         coinIcon = new Coin();
         coinIcon.coin();
-        
+        resetSkins();
         subInit();
         stateManager = 0;
     }
-    
-    void subInit(){
-        
+
+    void subInit() {
+
         difficulty = 1;
         nextDifficulty = 500;
         distance = 0;
@@ -229,53 +243,53 @@ class Main extends State {
         cooldown = 75;
         dgnX = 0;
         rockwayX = -12;
-        
+
         dashTime = dashCharge;
         speed = 1;
-        
+
         torGravity = 0.2;
         torJump = torMaxJump;
         torHurt = 0;
-        
+
         initSpike();
         initCoins();
         initBats(difficulty);
         generateCoffeeDrops();
-        
+
         //objects
+        resetSkins();
         tor.y = 100;
         tor.x = 32;
-        playerRun();
-        
+
         ghoul.grab();
         ghoul.x = 220;
         ghoul.y = Math.random(40, 110);
-        
+
         door.closed();
         door.x = 220;
         door.y = 0;
-        
+
         platform.x = 220;
         platform.y = Math.random(38, 100);
-        
+
         intro = true;
-        
+
         t = 0.0f;
         shake = 0.0f;
         doorShake = 0.0f;
-        
+
         vamp.x = 300;
         vamp.fly();
         zapTime = 200;
         arrowCoins();
     }
-    
-    void initBats(int diff){
-        if(diff > 30) diff = 30;
+
+    void initBats(int diff) {
+        if (diff > 30) diff = 30;
         bats = new Bat[diff];
         batDead = new boolean[diff];
         int baty = Math.random(0, 100);
-        for(int i = 0; i < diff; i++){
+        for (int i = 0; i < diff; i++) {
             bats[i] = new Bat();
             bats[i].x = 300 + i * 16;
             bats[i].y = baty + Math.random(-16, 16);
@@ -283,32 +297,32 @@ class Main extends State {
             batDead[i] = false;
         }
     }
-    
-    void initSpike(){
+
+    void initSpike() {
         spike = new Spikes();
         spike.x = Math.random(220, 400);
         spike.y = Math.random(-5, 6) > 0 ? 0 : 124;
         spike.idle();
     }
-    
-    void initCoins(){
+
+    void initCoins() {
         coins = new Coin[20];
         int coiny = Math.random(18, 110);
         int startx = Math.random(400, 500);
-        for(int i = 0; i < 20; i++){
+        for (int i = 0; i < 20; i++) {
             coins[i] = new Coin();
             coins[i].coin();
-            coins[i].x = startx + i*8; 
+            coins[i].x = startx + i * 8;
             coins[i].y = coiny + Math.random(-4, 4);
         }
     }
-    
+
     // Might help in certain situations
-    void shutdown(){
+    void shutdown() {
         screen = null;
     }
-    
-    void resetGame(){
+
+    void resetGame() {
         torCoins += (kills * 2);
         playerRun();
         tor.y = 100;
@@ -325,400 +339,463 @@ class Main extends State {
         t = 0.0f;
         screen.textRightLimit = 220;
         screen.textLeftLimit = 0;
+        resetSkins();
         stateManager = 1;
     }
-    
+
     // update is called by femto.Game every frame
-    void update(){
+    void update() {
         screen.clear(0);
         t += 2.0f;
-        
-        switch(stateManager){
-            case 0://title
+
+        switch (stateManager) {
+            case 0: //title
                 screen.clear(2);
                 updateTitle();
                 break;
-            case 1://pre-run start
+            case 1: //pre-run start
                 updateShop();
                 break;
-            case 2://running
+            case 2: //running
                 updateScreenShake();
-                
+
                 //Tor dies here.
-                if(torHits <= 0) {
+                if (torHits <= 0) {
                     screen.cameraX = 0;
                     screen.cameraY = 0;
                     dieSound.play();
-                    if((distance/10) > scoreManager.distScore){
+                    if ((distance / 10) > scoreManager.distScore) {
                         newHighScore = true;
-                        scoreManager.distScore = (distance/10);
+                        scoreManager.distScore = (distance / 10);
                     }
-                    if(kills > scoreManager.killScore) scoreManager.killScore = kills;
+                    if (kills > scoreManager.killScore) scoreManager.killScore = kills;
                     scoreManager.saveCookie();
-                    stateManager = 3;//Game Over!
-                    tipText =(String)tips[Math.random(0, 5)];
+                    stateManager = 3; //Game Over!
+                    tipText = (String) tips[Math.random(0, 7)];
                     return;
                 }
-                
-                distance+=1+speed;
-                if(distance > nextDifficulty) {
+
+                distance += 1 + speed;
+                if (distance > nextDifficulty) {
                     difficulty++;
                     nextDifficulty += 1000;
                     door.x = 220;
                     door.closed();
                     doorshut = true;
                 }
-                
+
                 //Dungeon background
                 updateDrawDungeon();
                 //END Dungeon background
-                
+
                 //SPIKES
                 updateDrawSpikes();
                 //END SPIKES
-                
+
                 //GHOUL
                 updateGhoul();
                 //END GHOUL
-                
+
                 //BAT
                 updateBats();
                 //END BAT
-                
+
                 //update VAMPYRE
                 updateVampire();
                 //END VAMPYRE
-                
+
                 //START PLATFORM
-                platform.x -= 1+speed;
-                if(platform.x < -200){
+                platform.x -= 1 + speed;
+                if (platform.x < -200) {
                     platform.x = Math.random(220, 500);
                     platform.y = Math.random(38, 100);
                 }
                 platform.draw(screen);
                 //END PLATFORM
-                
+
                 //START Draw BG
                 screen.fillRect(0, 138, 230, 50, 0);
                 //END Draw BG
-                if(dashing)speed = 3;
+                if (dashing) speed = 3;
                 else speed = 1;
-                
+
                 updateTor();
-                
+
                 checkGhoulGrabTor();
-        
+
                 drawPowerBox();
                 drawTorHits();
                 drawJumps();
-                
+
                 checkCoffeeCollect();
                 updateCoffeeDrops();
                 drawCoffeeDrops();
-                
+
                 updateCoins();
-        
+
                 drawUpgrades();
-                
+
                 //DOOR
                 updateDrawDoor();
                 //DOOR
-                
+
                 drawGameInfo();
                 break;
-            case 3://dead
+            case 3: //dead
                 updateGameOverScreen();
                 break;
         }
         screen.flush();
     }
     //END UPDATE
-    
+
     //TITLE UPDATE
-    void updateTitle(){
+    void updateTitle() {
         screen.fillRect(0, 0, 220, 40, 0);
         screen.fillRect(0, 128, 230, 50, 0);
         drawGround();
         bats[0].setMirrored(true);
         bats[0].draw(screen, 70, 92);
-        if(t > 500.0) bats[0].draw(screen, 52, 120);
-        if(t > 1000.0) bats[0].draw(screen, 68, 112);
-        if(t > 1500.0) bats[0].draw(screen, 50, 106);
-        if(t > 2000.0) bats[0].draw(screen, 40, 92);
-        if(t > 2500.0) bats[0].draw(screen, 30, 110);
-        if(t > 3000.0) bats[0].draw(screen, 22, 98);
-        
-        if(t > 3500.0) ghoul.draw(screen, 180, 28);
-        if(t > 4000.0) {
+        if (t > 500.0) bats[0].draw(screen, 52, 120);
+        if (t > 1000.0) bats[0].draw(screen, 68, 112);
+        if (t > 1500.0) bats[0].draw(screen, 50, 106);
+        if (t > 2000.0) bats[0].draw(screen, 40, 92);
+        if (t > 2500.0) bats[0].draw(screen, 30, 110);
+        if (t > 3000.0) bats[0].draw(screen, 22, 98);
+
+        if (t > 3500.0) ghoul.draw(screen, 180, 28);
+        if (t > 4000.0) {
             vamp.zap();
             vamp.draw(screen, 170, 100);
         }
-        
+
         tor.draw(screen, 86, 100);
-        
-        titleImage.draw(screen, (screen.width() - titleImage.width()) / 2,44);
+
+        titleImage.draw(screen, (screen.width() - titleImage.width()) / 2, 44);
         screen.setTextColor(6);
-        
-        screen.setTextPosition(0,0);
+
+        screen.setTextPosition(0, 0);
         screen.println("Best run: " + scoreManager.distScore);
-        
-        screen.setTextPosition((screen.width() - screen.textWidth("Game Start"))/2,150);
+
+        screen.setTextPosition((screen.width() - screen.textWidth("Game Start")) / 2, 150);
         screen.println("Game Start");
-        
-        screen.setTextPosition((screen.width() - screen.textWidth("Reset data"))/2, 160);
+
+        screen.setTextPosition((screen.width() - screen.textWidth("Reset data")) / 2, 160);
         screen.println("Reset data");
-                
+
         screen.setTextColor(10);
-        if(resetData){
+        if (resetData) {
             screen.setTextPosition(60, 160);
             screen.println("->");
-        }else{
+        } else {
             screen.setTextPosition(60, 150);
             screen.println("->");
         }
-        
+
         //Toggle cursor
-        if(Button.Down.justPressed() || Button.Up.justPressed()) resetData = !resetData;
-        
-        if(Button.C.justPressed() || Button.A.justPressed()){
-            if(resetData){
+        if (Button.Down.justPressed() || Button.Up.justPressed()) resetData = !resetData;
+
+        if (Button.C.justPressed() || Button.A.justPressed()) {
+            if (resetData) {
                 scoreManager.distScore = 0;
                 scoreManager.coins = 0;
                 scoreManager.killScore = 0;
                 scoreManager.saveCookie();
-                
+
                 vanityManager.hasFishBowl = false;
                 vanityManager.hasWizHat = false;
                 vanityManager.hasHero = false;
                 vanityManager.hasTin = false;
+                vanityManager.hasRobo = false;
+                vanityManager.hasFire = false;
                 vanityManager.saveCookie();
-            }else{
-                stateManager = 1;//Go to preStart 
+            } else {
+                stateManager = 1; //Go to preStart 
             }
         }
     }
     //END TITLE UPDATE
-   
+
     //SHOP UPDATE
-     void updateShop(){
+    void updateShop() {
+        screen.textLeftLimit = 0;
         
-        drawGround();
-        screen.fillRect(0, 0, 220, 40, 0);
-        screen.fillRect(0, 138, 230, 50, 0);
-        drawTrees();
-        
+
         screen.setTextColor(10);
-        
+
         //B button switches shop screens.
-        if(Button.B.justPressed()) {
+        if (Button.B.justPressed()) {
             tailor = !tailor;
-            if(tailor){
+            if (tailor) {
                 message = "Welcome to the tailor's shop!\nHave a look around with [<-] and [->].";
-            }else{
-                if(!vanityCheck()){
+            } else {
+                if (!vanityCheck()) {
                     vanity = 0;
                 }
             }
         }
-        if(tailor){
-            if(Button.Right.justPressed()){
+        if (tailor) {
+            if (Button.Right.justPressed()) {
                 vanity++;
-                if(vanity > 4) vanity = 4;
+                if (vanity > 6) vanity = 6;
                 message = vanityMessage();
             }
-            if(Button.Left.justPressed()){
+            if (Button.Left.justPressed()) {
                 vanity--;
-                if(vanity < 0) vanity = 0;
+                if (vanity < 0) vanity = 0;
                 message = vanityMessage();
             }
-            
-            if(Button.A.justPressed()) {
-                switch(vanity){
+
+            if (Button.A.justPressed()) {
+                switch (vanity) {
                     case 1:
-                        if(!vanityManager.hasWizHat){
-                            if(torCoins >= 500){
+                        if (!vanityManager.hasWizHat) {
+                            if (torCoins >= 500) {
                                 torCoins -= 500;
                                 vanityManager.hasWizHat = true;
                                 vanityManager.saveCookie();
-                            }else{
+                                coinCollect.play();
+                            } else {
                                 message = message + "\nYou're short " + (500 - torCoins) + " coins.";
                             }
                         }
                         break;
                     case 2:
-                        if(!vanityManager.hasFishBowl){
-                            if(torCoins >= 750){
-                                torCoins -= 750;
+                        if (!vanityManager.hasFishBowl) {
+                            if (torCoins >= 500) {
+                                torCoins -= 500;
                                 vanityManager.hasFishBowl = true;
                                 vanityManager.saveCookie();
-                            }else{
-                                message = message + "\nYou're short " + (750 - torCoins) + " coins.";
+                                coinCollect.play();
+                            } else {
+                                message = message + "\nYou're short " + (500 - torCoins) + " coins.";
                             }
                         }
                         break;
                     case 3:
-                        if(!vanityManager.hasHero){
-                            if(torCoins >= 1000){
-                                torCoins -= 1000;
+                        if (!vanityManager.hasHero) {
+                            if (torCoins >= 750) {
+                                torCoins -= 750;
                                 vanityManager.hasHero = true;
                                 vanityManager.saveCookie();
-                            }else{
-                                message = message + "\nYou're short " + (1000 - torCoins) + " coins.";
+                                coinCollect.play();
+                            } else {
+                                message = message + "\nYou're short " + (750 - torCoins) + " coins.";
                             }
                         }
                         break;
                     case 4:
-                        if(!vanityManager.hasTin){
-                            if(torCoins >= 1250){
-                                torCoins -= 1250;
+                        if (!vanityManager.hasTin) {
+                            if (torCoins >= 750) {
+                                torCoins -= 750;
                                 vanityManager.hasTin = true;
                                 vanityManager.saveCookie();
-                            }else{
-                                message = message + "\nYou're short" + (1250 - torCoins) + " coins.";
+                                coinCollect.play();
+                            } else {
+                                message = message + "\nYou're short" + (750 - torCoins) + " coins.";
                             }
                         }
                         break;
+                    case 5:
+                        if (!vanityManager.hasRobo) {
+                            if (torCoins >= 1000) {
+                                torCoins -= 1000;
+                                vanityManager.hasRobo = true;
+                                vanityManager.saveCookie();
+                                coinCollect.play();
+                            } else {
+                                message = message + "\nYou're short" + (1000 - torCoins) + " coins.";
+                            }
+                        }
+                        break;
+                    case 6:
+                        if (!vanityManager.hasFire) {
+                            if (torCoins >= 1000) {
+                                torCoins -= 1000;
+                                vanityManager.hasFire = true;
+                                vanityManager.saveCookie();
+                                coinCollect.play();
+                            } else {
+                                message = message + "\nYou're short" + (1000 - torCoins) + " coins.";
+                            }
+                        }
                     default:
-                    break;
+                        break;
                 }
             }
             coinIcon.draw(screen, 0, 8);
             screen.setTextPosition(10, 10);
-            screen.println(""+torCoins);
-            if(vanity > 0) {
-                coinIcon.draw(screen, 0, 30);
-                screen.setTextPosition(10, 32);
-            }else screen.setTextPosition(0, 32);
-        }else{
+            screen.println("" + torCoins);
+            screen.textLeftLimit = 4;
+            screen.drawRect(0, 28, 219, 40, 5);
+            screen.fillRect(1, 29, 218, 39, 12);
+            if (vanity > 0) {
+                coinIcon.draw(screen, 4, 30);
+                screen.setTextPosition(14, 32);
+            } else screen.setTextPosition(4, 32);
+        } else {
+            drawGround();
+            screen.fillRect(0, 0, 220, 40, 0);
+            screen.fillRect(0, 138, 230, 50, 0);
+            drawTrees();
+            
             screen.setTextPosition(62, 0);
             screen.println("Press [C] to start.");
-            
+
             drawUpgrades();
             drawPowerBox();
             drawTorHits();
             drawJumps();
-            
-            if(Button.Right.justPressed()){
-                if(powerReady == 2) powerReady = 0;
+
+            if (Button.Right.justPressed()) {
+                if (powerReady == 2) powerReady = 0;
                 else powerReady++;
             }
-            if(Button.Left.justPressed()){
-                if(powerReady == 0) powerReady = 2;
+            if (Button.Left.justPressed()) {
+                if (powerReady == 0) powerReady = 2;
                 else powerReady--;
             }
-            
-            if(Button.A.justPressed()){
-                switch(powerReady){
-                    case 0:
-                        if(dashCharge < 200) dashCharge += 10;
-                        dashTime = dashCharge;
-                        break;
-                    case 1:
-                        if(torMaxJump < 20) torMaxJump++;
-                        torJump = torMaxJump;
-                        break;
-                    case 2:
-                        if(torHits < 20) torHits++;
-                        break;
-                    default:
-                        break;
+
+            if (Button.A.justPressed()) {
+                if(torCoins >= 10){
+                    switch (powerReady) {
+                        case 0:
+                            if (dashCharge < 200) {
+                                dashCharge += 10;
+                                dashTime = dashCharge;
+                                torCoins -= 10;
+                                coinCollect.play();
+                            }
+                            break;
+                        case 1:
+                            if (torMaxJump < 20) {
+                                torMaxJump++;
+                                torJump = torMaxJump;
+                                torCoins -= 10;
+                                coinCollect.play();
+                            }
+                            break;
+                        case 2:
+                            if (torHits < 20) {
+                                torHits++;
+                                torCoins -= 10;
+                                coinCollect.play();
+                            }
+                            break;
+                        default:
+                            break;
+                    }
                 }
             }
-            if(Button.C.justPressed() && vanityCheck()) {
+            if (Button.C.justPressed() && vanityCheck()) {
                 subInit();
-                stateManager = 2;//START GAME
+                stateManager = 2; //START GAME
             }
-            
+
             coinIcon.draw(screen, 0, 8);
             screen.setTextPosition(10, 10);
-            screen.println(""+torCoins);
+            screen.println("" + torCoins);
             screen.println("Best run: " + scoreManager.distScore);
-            message = "[B] Go to tailor.\n[<-] or [->] Select power up.\n[A] to purchase.";
-            for(Coin c : coins){
+            message = "[B] Go to tailor.\n[<-] or [->] Select power up.\n[A] to purchase for 10 coins each.";
+            for (Coin c: coins) {
                 c.draw(screen);
             }
         }
-        
-        switch(vanity){
-            case 0: 
-                tor.draw(screen);
+
+        switch (vanity) {
+            case 0:
+                tor.draw(screen, 86, 100);
                 break;
             case 1:
-                wizHat.draw(screen, tor.x, tor.y);
-                if(tailor){
-                    if(!vanityManager.hasWizHat)screen.println("500 : [A] Purchase?");
+                wizHat.draw(screen, 86, 100);
+                if (tailor) {
+                    if (!vanityManager.hasWizHat) screen.println("500 : [A] Purchase?");
                     else screen.println("[B] to Wear");
-                } 
+                }
                 break;
             case 2:
-                fishBowl.draw(screen, tor.x, tor.y);
-                if(tailor) {
-                    if(!vanityManager.hasFishBowl)screen.println("750 : [A] Purchase?");
+                fishBowl.draw(screen, 86, 100);
+                if (tailor) {
+                    if (!vanityManager.hasFishBowl) screen.println("500 : [A] Purchase?");
                     else screen.println("[B] to Wear");
                 }
                 break;
             case 3:
-                hero.draw(screen, tor.x, tor.y);
-                if(tailor) {
-                    if(!vanityManager.hasHero)screen.println("1,000 : [A] Purchase?");
+                hero.draw(screen, 86, 100);
+                if (tailor) {
+                    if (!vanityManager.hasHero) screen.println("750 : [A] Purchase?");
                     else screen.println("[B] to Wear");
                 }
                 break;
             case 4:
-                tintitto.draw(screen, tor.x, tor.y);
-                if(tailor) {
-                    if(!vanityManager.hasTin)screen.println("1,250 : [A] Purchase?");
+                tintitto.draw(screen, 86, 100);
+                if (tailor) {
+                    if (!vanityManager.hasTin) screen.println("750 : [A] Purchase?");
+                    else screen.println("[B] to Wear");
+                }
+                break;
+            case 5:
+                robot.draw(screen, 86, 100);
+                if (tailor) {
+                    if (!vanityManager.hasRobo) screen.println("1,000 : [A] Purchase?");
+                    else screen.println("[B] to Wear");
+                }
+                break;
+            case 6:
+                fireman.draw(screen, 86, 100);
+                if (tailor) {
+                    if (!vanityManager.hasFire) screen.println("1,000 : [A] Purchase?");
                     else screen.println("[B] to Wear");
                 }
                 break;
         }
-        if(!vanityCheck())lock.draw(screen, tor.x+tor.width()/2, tor.y+tor.height()/2);
+        if (!vanityCheck()) lock.draw(screen, tor.x + tor.width() / 2, tor.y + tor.height() / 2);
         screen.println(message);
     }
     //END SHOP UPDATE
-    
+
     //GAME OVER UPDATE
-    void updateGameOverScreen(){
+    void updateGameOverScreen() {
         screen.setTextColor(7);
-        if(newHighScore) {
-            screen.setTextPosition((screen.width() - screen.textWidth("** New Best Run!! **"))/2,0);
+        if (newHighScore) {
+            screen.setTextPosition((screen.width() - screen.textWidth("** New Best Run!! **")) / 2, 0);
             screen.println("** New Best Run!! **");
-        }else{
-            screen.setTextPosition((screen.width() - screen.textWidth("The dungeon consumed you"))/2, 0);
+        } else {
+            screen.setTextPosition((screen.width() - screen.textWidth("The dungeon consumed you")) / 2, 0);
             screen.println("The dungeon consumed you");
         }
-        
+
         //draw message box
         screen.drawRect(10, 32, 200, 90, 5);
         screen.fillRect(11, 33, 199, 89, 12);
-        
+
         screen.drawRect(10, 130, 200, 30, 5);
         screen.fillRect(11, 131, 199, 29, 12);
         //end box
-        
+
         screen.setTextColor(6);
         screen.setTextPosition(60, 42);
         screen.textLeftLimit = 60;
-        
+
         screen.println("Best run: " + scoreManager.distScore);
-        screen.println("This run: " + distance/10);
+        screen.println("This run: " + distance / 10);
         screen.println("Coins: " + torCoins);
         screen.println("Kills: " + kills);
         screen.println("Bonus coins: " + (kills * 2));
         screen.drawLine(60, 80, 150, 80, 7, false);
         screen.println("");
         screen.println("Total coins: " + (torCoins + (kills * 2)));
-        
+
         screen.textLeftLimit = 16;
         screen.textRightLimit = 190;
         screen.setTextPosition(16, 134);
         screen.println(tipText);
-        if(Button.C.justPressed()) resetGame();
+        if (Button.C.justPressed()) resetGame();
     }
     //END GAME OVER UPDATE
-    
-    boolean vanityCheck(){
-        switch(vanity){
+
+    boolean vanityCheck() {
+        switch (vanity) {
             case 0:
                 return true;
             case 1:
@@ -729,13 +806,17 @@ class Main extends State {
                 return vanityManager.hasHero;
             case 4:
                 return vanityManager.hasTin;
+            case 5:
+                return vanityManager.hasRobo;
+            case 6:
+                return vanityManager.hasFire;
             default:
                 return false;
         }
     }
-    
-    String vanityMessage(){
-        switch(vanity){
+
+    String vanityMessage() {
+        switch (vanity) {
             case 1:
                 return "The Wizard Robes! With complementary\nKitty! No idea where he came from.";
             case 2:
@@ -744,95 +825,99 @@ class Main extends State {
                 return "This one links some memories.\nThe Hero suit!";
             case 4:
                 return "Adventure awaits! Nice hair cut.";
+            case 5:
+                return "Time to Rock and Roll!";
+            case 6:
+                return "This will keep you warm in any\ndungeon!";
             default:
                 return "[B] to return to Power Up shop.";
         }
     }
-    
-    void updateDrawDungeon(){
-        dgnX -= 1+speed;
-        if(dgnX <= -220) {
+
+    void updateDrawDungeon() {
+        dgnX -= 1 + speed;
+        if (dgnX <= -220) {
             dgnX = 0;
-            intro = false;   
+            intro = false;
         }
-        if(dgnX > -220 && intro){
+        if (dgnX > -220 && intro) {
             introGround();
-            frontBackground.draw(screen, dgnX+96, 140-frontBackground.height());
-            for(int i = 0; i < 4; i++){
-                dungeonBackground.draw(screen, dgnX+220, i * 44);
+            frontBackground.draw(screen, dgnX + 96, 140 - frontBackground.height());
+            for (int i = 0; i < 4; i++) {
+                dungeonBackground.draw(screen, dgnX + 220, i * 44);
             }
-            screen.fillRect(dgnX+220, 128, 400, 10, 2);
-        }else{
-            for(int i = 0; i < 4; i++){
+            screen.fillRect(dgnX + 220, 128, 400, 10, 2);
+        } else {
+            for (int i = 0; i < 4; i++) {
                 dungeonBackground.draw(screen, dgnX, i * 44);
-                dungeonBackground.draw(screen, dgnX+220, i * 44);
+                dungeonBackground.draw(screen, dgnX + 220, i * 44);
             }
             screen.fillRect(0, 128, 220, 10, 2);
             drawCarpet();
         }
     }
-    
-    void updateDrawSpikes(){
-        if(difficulty >= 10){
-            spike.x -= 1+speed;
-            
-            if(spike.x < -140){
+
+    void updateDrawSpikes() {
+        if (difficulty >= 10) {
+            spike.x -= 1 + speed;
+
+            if (spike.x < -140) {
                 initSpike();
-            } 
-            if(spike.y == 0){
+            }
+            if (spike.y == 0) {
                 spike.setFlipped(true);
-            }else{
+            } else {
                 spike.setFlipped(false);
             }
-            
+
             spike.draw(screen);
-            if(collidesWithTor(spike.x, spike.y, spike.width(), spike.height())){
+            if (collidesWithTor(spike.x, spike.y, spike.width(), spike.height())) {
                 torHurt = cooldown;
                 torHits = 0;
                 //SO DEAD. GameOver if touch any spikes.
             }
         }
     }
-    
-    void updateScreenShake(){
-        if(shake > 0.0){
-            if(dashing){
+
+    void updateScreenShake() {
+        if (shake > 0.0) {
+            if (dashing) {
                 screen.cameraX = Math.cos(t) * 1;
-            }else{
+            } else {
                 screen.cameraX = Math.cos(t) * 3;
                 screen.cameraY = Math.sin(t) * 3;
             }
             shake -= 0.2f;
         }
-        
-        if(doorShake > 0.0){
+
+        if (doorShake > 0.0) {
             screen.cameraX = Math.cos(t) * 10;
             screen.cameraY = Math.sin(t) * 10;
             doorShake -= 0.2f;
         }
-        
-        if(doorShake <= 0.0 && shake <= 0.0){
+
+        if (doorShake <= 0.0 && shake <= 0.0) {
             screen.cameraX = 0;
             screen.cameraY = 0;
         }
     }
-    
-    void updateDrawDoor(){
-        if(door.x > -10){
+
+    void updateDrawDoor() {
+        if (door.x > -10) {
             door.x -= 1 + speed;
-            if(tor.y > 20 && tor.y + tor.height() < 108 && tor.x+tor.width()/2 > door.x && doorshut){
-                if(dashing){
+            if (tor.y > 20 && tor.y + tor.height() < 108 && tor.x + tor.width() / 2 > door.x && doorshut) {
+                if (dashing) {
                     door.broken();
                     doorShake = 3.0f;
                     explode.play();
                     doorshut = false;
-                }else{
+                } else {
                     torHurt = cooldown;
                     torHits = 0;
                     //SO DEAD. GameOver
                 }
             }
-            if((tor.y < 20 || tor.y+tor.height() > 108) && (tor.x+tor.width()/2) > door.x && doorshut){
+            if ((tor.y < 20 || tor.y + tor.height() > 108) && (tor.x + tor.width() / 2) > door.x && doorshut) {
                 torHurt = cooldown;
                 torHits = 0;
                 //SO DEAD. GameOver
@@ -840,128 +925,128 @@ class Main extends State {
             door.draw(screen);
         }
     }
-    
-    void drawGameInfo(){
+
+    void drawGameInfo() {
         //Draw position
         screen.setTextPosition(0, 0);
         screen.setTextColor(10);
-        screen.println("Distance: "+distance/10);
+        screen.println("Distance: " + distance / 10);
         screen.println("Kills: " + kills);
         screen.println("Coins: " + torCoins);
     }
-    
-    boolean collidesWithTor(float x, float y, float width, float height){
-        return tor.x + 4 < x + width && tor.x + 4 + tor.width() - 8 > x 
-                && tor.y + 4 < y + height && tor.y + 4 + tor.height() - 8 > y;
+
+    boolean collidesWithTor(float x, float y, float width, float height) {
+        return tor.x + 4 < x + width && tor.x + 4 + tor.width() - 8 > x &&
+            tor.y + 4 < y + height && tor.y + 4 + tor.height() - 8 > y;
     }
-    
-    void updateVampire(){
-        if(difficulty >= 25){
-            if(vamp.x <= -200){
-                if(Math.random(0, 20) == 5) {
+
+    void updateVampire() {
+        if (difficulty >= 25) {
+            if (vamp.x <= -200) {
+                if (Math.random(0, 20) == 5) {
                     vamp.x = 600;
                     vamp.y = tor.y;
                     vampDead = false;
                 }
             }
-            
-            if(!vampDead){
-                if(!(vamp.x <= tor.x+tor.width())){
+
+            if (!vampDead) {
+                if (!(vamp.x <= tor.x + tor.width())) {
                     vamp.x -= 0.1;
                 }
-                if(vamp.y > tor.y) vamp.y -= 0.3f;
-                else vamp.y += 0.3f; 
-                
-                if(vamp.x <= 110){
+                if (vamp.y > tor.y) vamp.y -= 0.3f;
+                else vamp.y += 0.3f;
+
+                if (vamp.x <= 110) {
                     vamp.transform();
                 }
-                if(vamp.x <= 80){
+                if (vamp.x <= 80) {
                     vamp.idle();
                 }
-                
-                if(vamp.y >= tor.y - 10 && vamp.y+vamp.height() < tor.y + tor.height() + 10 && vamp.x <= tor.x + tor.width() + 10){
+
+                if (vamp.y >= tor.y - 10 && vamp.y + vamp.height() < tor.y + tor.height() + 10 && vamp.x <= tor.x + tor.width() + 10) {
                     vamp.zap();
                     zapTime--;
                 }
-                
-                if(zapTime <= 0){
-                    screen.drawCircle(tor.x + tor.width()/2, tor.y+tor.height()/2, 4, 5, false);
+
+                if (zapTime <= 0) {
+                    screen.drawCircle(tor.x + tor.width() / 2, tor.y + tor.height() / 2, 4, 5, false);
                     zapTime = 200;
                     torHits--;
                     torHurt = cooldown;
                 }
-                
-                if(zapTime < 100){
-                    if(dashing && tor.y >= vamp.y && tor.y <= vamp.y + vamp.height()){
+
+                if (zapTime < 100) {
+                    if (dashing && tor.y >= vamp.y && tor.y <= vamp.y + vamp.height()) {
                         vamp.x -= 1 + speed;
-                        if(vamp.x < tor.x + tor.width()){
+                        if (vamp.x < tor.x + tor.width()) {
                             vampDead = true;
                             vamp.x = -200;
                         }
                     }
                 }
-                
+
                 vamp.draw(screen);
             }
         }
     }
 
-    void updateCoins(){
-        int check  = 0;
-        for(int i = 0; i < coins.length; i++){
-            coins[i].x -= 1+speed;
+    void updateCoins() {
+        int check = 0;
+        for (int i = 0; i < coins.length; i++) {
+            coins[i].x -= 1 + speed;
             coins[i].y += Math.random(-1, 2);
             coins[i].draw(screen);
-            if(coins[i].x < -100)check++;
-            if(collidesWithTor(coins[i].x, coins[i].y, coins[i].width(), coins[i].height())){
+            if (coins[i].x < -100) check++;
+            if (collidesWithTor(coins[i].x, coins[i].y, coins[i].width(), coins[i].height())) {
                 coins[i].x = -200;
                 torCoins++;
                 coinCollect.play();
             }
         }
-        if(check == coins.length) initCoins();
+        if (check == coins.length) initCoins();
     }
 
-    void updateBats(){
+    void updateBats() {
         int check = 0;
-        for(int i = 0; i < bats.length; i++){
-            if(bats[i].x < -10) check++;
-            if(!batDead[i]) {
-                bats[i].x -= 2+speed;
-            }else{
-                bats[i].x -= 1+speed;
+        for (int i = 0; i < bats.length; i++) {
+            if (bats[i].x < -10) check++;
+            if (!batDead[i]) {
+                bats[i].x -= 2 + speed;
+            } else {
+                bats[i].x -= 1 + speed;
             }
-            if(collidesWithTor(bats[i].x, bats[i].y, bats[i].width(), bats[i].height())){
-                if(dashing && !batDead[i]){
+            if (collidesWithTor(bats[i].x, bats[i].y, bats[i].width(), bats[i].height())) {
+                if (dashing && !batDead[i]) {
                     bats[i].x += Math.random(16, 23);
                     bats[i].y += Math.random(-10, 10);
                     bats[i].dead();
                     batDead[i] = true;
                     kills++;
                     batSplat.play();
-                }else if (torHurt <= 0 && !batDead[i]){
+                } else if (torHurt <= 0 && !batDead[i]) {
                     torHurt = cooldown;
-                    torHits-=1;
+                    torHits -= 1;
                     hurt.play();
                     shake = 2.0;
                 }
             }
-        
+
             bats[i].draw(screen);
         }
-        
-        if(check >= bats.length) initBats(difficulty);
+
+        if (check >= bats.length) initBats(difficulty);
     }
-    
-    void updateGhoul(){
-        ghoul.x-=1+speed;
-        if(ghoul.x <= -20){
+
+    void updateGhoul() {
+        ghoul.x -= 1 + speed;
+        if (ghoul.x <= -20) {
             ghoul.x = Math.random(220, 600);
             ghoul.y = Math.random(50, 100);
-            if(platform.x < ghoul.x + ghoul.width() &&
+            if (platform.x < ghoul.x + ghoul.width() &&
                 platform.x + platform.width() > ghoul.x &&
                 platform.y < ghoul.y + ghoul.height() &&
-                platform.y + platform.height() > ghoul.y){
+                platform.y + platform.height() > ghoul.y) {
                 ghoul.x += 160;
             }
             ghoul.grab();
@@ -969,18 +1054,18 @@ class Main extends State {
         }
         ghoul.draw(screen);
     }
-    
-    void checkGhoulGrabTor(){
+
+    void checkGhoulGrabTor() {
         // screen.drawRect(ghoul.x, ghoul.y, ghoul.width(), ghoul.height()-8, 10, false);
-        if(collidesWithTor(ghoul.x, ghoul.y, ghoul.width(), ghoul.height()-8)){
-            if(dashing && !ghoulDead){
+        if (collidesWithTor(ghoul.x, ghoul.y, ghoul.width(), ghoul.height() - 8)) {
+            if (dashing && !ghoulDead) {
                 ghoul.dead();
                 ghoulDead = true;
                 kills++;
                 splat.play();
-            }else{
-                if(torHurt <= 0 && !ghoulDead){
-                    torHits-=1;
+            } else {
+                if (torHurt <= 0 && !ghoulDead) {
+                    torHits -= 1;
                     hurt.play();
                     shake = 2.0;
                     torHurt = cooldown;
@@ -988,51 +1073,51 @@ class Main extends State {
             }
         }
     }
-    
-    void checkCoffeeCollect(){
-        if(collidesWithTor(coffee.x, coffee.y, coffee.width(), coffee.height())){
+
+    void checkCoffeeCollect() {
+        if (collidesWithTor(coffee.x, coffee.y, coffee.width(), coffee.height())) {
             powerReady += 1;
-            if(powerReady >= 3) powerReady = 0;
+            if (powerReady >= 3) powerReady = 0;
             coffee.x = -20;
         }
     }
-    
-    boolean checkTorPlatform(){
-        if(dys < 0.0)return false;//jumping
-        if(tor.x < platform.x + platform.width() &&
+
+    boolean checkTorPlatform() {
+        if (dys < 0.0) return false; //jumping
+        if (tor.x < platform.x + platform.width() &&
             tor.x + tor.width() > platform.x &&
-            tor.y + tor.height()-6 + dys< platform.y+10 &&
-            tor.y + tor.height()-6 + dys > platform.y+3)
-            {
-                if(!Button.Down.isPressed() ){
-                    dys = 0;
-                    torJump = torMaxJump;
-                    if(!dashing){
-                        playerRun();
-                    }
-                    return true;
+            tor.y + tor.height() - 6 + dys < platform.y + 10 &&
+            tor.y + tor.height() - 6 + dys > platform.y + 3) {
+            if (!Button.Down.isPressed()) {
+                dys = 0;
+                torJump = torMaxJump;
+                if (!dashing) {
+                    playerRun();
                 }
-               
+                return true;
             }
+
+        }
         return false;
     }
-    
-    void updateTor(){
-        if(jump && !dashing){
-            dys += torGravity;//Gravity
-            if(Button.Down.isPressed()){
+
+    void updateTor() {
+        tor.x = 32;
+        if (jump && !dashing) {
+            dys += torGravity; //Gravity
+            if (Button.Down.isPressed()) {
                 dys += 0.4;
             }
-        }else{
+        } else {
             dys = 0;
         }
-        
-        if(tor.y <= 0){
+
+        if (tor.y <= 0) {
             tor.y = 0;
         }
-        
-        if(!checkTorPlatform()){
-            if(tor.y >= 100){
+
+        if (!checkTorPlatform()) {
+            if (tor.y >= 100) {
                 tor.y = 100;
                 jump = false;
                 torJump = torMaxJump;
@@ -1041,37 +1126,37 @@ class Main extends State {
         }
 
         //INPUT
-        if( Button.A.justPressed() && (!jump || torJump > 0)) {
+        if (Button.A.justPressed() && (!jump || torJump > 0)) {
             dys = -3.5;
             torJump--;
-            jump = true;  
+            jump = true;
             jumpSound.play();
             playerJump();
         }
-        
-        if(Button.B.isPressed() && dashTime > 0 && dashReady && torHurt <= 0){
+
+        if (Button.B.isPressed() && dashTime > 0 && dashReady && torHurt <= 0) {
             dashTime--;
             dashing = true;
             shake += 0.2f;
             playerDash();
         }
 
-        if(Button.C.justPressed()){
-            switch(powerReady){
+        if (Button.C.justPressed()) {
+            switch (powerReady) {
                 case 0:
                     powerReady = -1;
-                    if(dashCharge < 200) dashCharge += 10;
+                    if (dashCharge < 200) dashCharge += 10;
                     dashTime = dashCharge;
                     powerUp.play();
                     break;
                 case 1:
-                    if(torMaxJump < 20) torMaxJump++;
+                    if (torMaxJump < 20) torMaxJump++;
                     torJump = torMaxJump;
                     powerReady = -1;
                     powerUp.play();
                     break;
                 case 2:
-                    if(torHits < 20) torHits++;
+                    if (torHits < 20) torHits++;
                     powerReady = -1;
                     powerUp.play();
                     break;
@@ -1079,67 +1164,67 @@ class Main extends State {
                     break;
             }
         }
-        
-        if(!Button.B.isPressed() && dashing && torHurt <= 0){
+
+        if (!Button.B.isPressed() && dashing && torHurt <= 0) {
             dashing = false;
             playerJump();
         }
         //END Input
-        
-        if(!dashReady){
+
+        if (!dashReady) {
             dashTime++;
-            if(dashTime >= dashCharge){
+            if (dashTime >= dashCharge) {
                 dashTime = dashCharge;
                 dashReady = true;
             }
         }
-        
-        if(dashTime <= 0 && torHurt <= 0){
+
+        if (dashTime <= 0 && torHurt <= 0) {
             dashing = false;
             dashReady = false;
             playerJump();
         }
-        
-        if(torHurt >= 0){
+
+        if (torHurt >= 0) {
             torHurt--;
-        } 
-        
+        }
+
         tor.y += dys;
         drawPlayer();
     }
-    
-    void generateCoffeeDrops(){
+
+    void generateCoffeeDrops() {
         coffee.x = Math.random(220, 230);
         coffee.y = Math.random(30, 120);
     }
 
-    void updateCoffeeDrops(){
-        coffee.x-= 1+speed;
-        if(coffee.x < -10){
+    void updateCoffeeDrops() {
+        coffee.x -= 1 + speed;
+        if (coffee.x < -10) {
             generateCoffeeDrops();
         }
     }
-    void drawCoffeeDrops(){
+    void drawCoffeeDrops() {
         coffee.y += Math.random(-1, 2);
         coffee.draw(screen);
     }
-    
-    void arrowCoins(){
+
+    void arrowCoins() {
         coins = new Coin[12];
-        for(int i = 0; i < 12; i++){
+        for (int i = 0; i < 12; i++) {
             coins[i] = new Coin();
             coins[i].coin();
         }
-        
+
         coins[0].x = 160;
         coins[0].y = 75;
-        
+
         coins[1].x = 170;
         coins[1].y = 75;
-        
+
         coins[2].x = 180;
         coins[2].y = 75;
-        
+
         coins[9].x = 190;
         coins[9].y = 59;
         coins[6].x = 190;
@@ -1150,112 +1235,120 @@ class Main extends State {
         coins[7].y = 83;
         coins[8].x = 190;
         coins[8].y = 91;
-        
+
         coins[10].x = 200;
         coins[10].y = 67;
         coins[11].x = 200;
         coins[11].y = 83;
         coins[4].x = 200;
         coins[4].y = 75;
-        
+
         coins[5].x = 210;
         coins[5].y = 75;
 
     }
-    
-    void drawUpgrades(){
+
+    void drawUpgrades() {
         screen.setTextColor(10);
         screen.setTextPosition(10, 142);
         screen.print("POWER");
-        
+
         screen.setTextPosition(54, 142);
         screen.print("JUMP");
-        
+
         screen.setTextPosition(98, 142);
         screen.print("HEALTH");
-        
-        for(int i = 0; i < 3; i++){
-            if(i==powerReady){
-                screen.drawRect(44*i+8, 140, 40, 8, 5);
-            }else{
-                screen.drawRect(44*i+8, 140, 40, 8, 10);
+
+        for (int i = 0; i < 3; i++) {
+            if (i == powerReady) {
+                screen.drawRect(44 * i + 8, 140, 40, 8, 5);
+            } else {
+                screen.drawRect(44 * i + 8, 140, 40, 8, 10);
             }
         }
     }
-    
-    void drawPowerBox(){
+
+    void drawPowerBox() {
         //draw charge box
-        screen.drawRect(8, 152, dashCharge+1, 4, 5);
+        screen.drawRect(8, 152, dashCharge + 1, 4, 5);
         screen.fillRect(9, 153, dashTime, 3, 6);
     }
-    
-    void drawTorHits(){
-        for(int j = 0; j < torHits; j++){
-            screen.drawCircle(10*j+10, 170, 2, 5);
+
+    void drawTorHits() {
+        for (int j = 0; j < torHits; j++) {
+            screen.drawCircle(10 * j + 10, 170, 2, 5);
         }
     }
-    
-    void drawJumps(){
-        for(int i = 0; i < torJump; i++){
-            screen.drawCircle(10*i+10, 162, 2, 10);
+
+    void drawJumps() {
+        for (int i = 0; i < torJump; i++) {
+            screen.drawCircle(10 * i + 10, 162, 2, 10);
         }
     }
-    
-    void introGround(){
-        rockwayX-=1 + speed;
-        if(rockwayX <= -220)rockwayX = 0;
-        for(int i = 0; i < 5; i++){
+
+    void introGround() {
+        rockwayX -= 1 + speed;
+        if (rockwayX <= -220) rockwayX = 0;
+        for (int i = 0; i < 5; i++) {
             rockway.draw(screen, 22 * i + rockwayX, 128);
         }
     }
-    
-    void drawGround(){
-        rockwayX-=1;
-        if(rockwayX <= -220)rockwayX = 0;
-        for(int i = 0; i < 20; i++){
+
+    void drawGround() {
+        rockwayX -= 1;
+        if (rockwayX <= -220) rockwayX = 0;
+        for (int i = 0; i < 20; i++) {
             rockway.draw(screen, 22 * i + rockwayX, 128);
         }
     }
-    
-    void drawCarpet(){
+
+    void drawCarpet() {
         cpax -= 1 + speed;
         cpbx -= 1 + speed;
-        if(cpax <= -100) cpax = 220 + Math.random(0, 200);
-        if(cpbx <= -100) cpbx = 220 + Math.random(0, 200);
-        
+        if (cpax <= -100) cpax = 220 + Math.random(0, 200);
+        if (cpbx <= -100) cpbx = 220 + Math.random(0, 200);
+
         carpetA.draw(screen, cpax, 128);
         carpetB.draw(screen, cpbx, 128);
     }
-    
-    void drawTrees(){
+
+    void drawTrees() {
         tbx -= 1;
         tcx -= 1;
         treeA.x -= 1;
-        if(treeA.x <= -60) {
+        if (treeA.x <= -60) {
             treeA.x = Math.random(220, 400);
-            if(Math.random(0,2)==1)treeA.setMirrored(true);
+            if (Math.random(0, 2) == 1) treeA.setMirrored(true);
             else treeA.setMirrored(false);
         }
-        if(tbx <= -60) tbx = Math.random(220, 400);
-        if(tcx <= -60) tcx = Math.random(220, 400);
-        
+        if (tbx <= -60) tbx = Math.random(220, 400);
+        if (tcx <= -60) tcx = Math.random(220, 400);
+
         treeA.draw(screen);
-        treeB.draw(screen, tbx, 129-treeB.height());
-        treeC.draw(screen, tcx, 129-treeC.height());
+        treeB.draw(screen, tbx, 129 - treeB.height());
+        treeC.draw(screen, tcx, 129 - treeC.height());
     }
-    
-    
-    
-    void drawPlayer(){
-        if(vanity == 3 && torHurt > 0 ){
-            screen.setTextPosition(tor.x-16, tor.y-8);
+
+    void resetSkins() {
+        tor.run();
+        wizHat.run();
+        fishBowl.run();
+        hero.run();
+        tintitto.run();
+        robot.run();
+        fireman.run();
+    }
+
+    void drawPlayer() {
+        if (vanity == 3 && torHurt > 0) {
+            screen.setTextPosition(tor.x - 16, tor.y - 8);
             screen.setTextColor(10);
             screen.println("HEY! LISTEN!");
         }
-        if(torHurt > 0 && torHurt % 3 == 1){
-           return;
+        if (torHurt > 0 && torHurt % 3 == 1) {
+            return;
         }
-        switch(vanity){
+        switch (vanity) {
             case 0:
                 tor.draw(screen);
                 break;
@@ -1271,31 +1364,91 @@ class Main extends State {
             case 4:
                 tintitto.draw(screen, tor.x, tor.y);
                 break;
+            case 5:
+                robot.draw(screen, tor.x, tor.y);
+                break;
+            case 6:
+                fireman.draw(screen, tor.x, tor.y);
+                break;
         }
     }
-    
-    void playerRun(){
-        tor.run();
-        wizHat.run();
-        fishBowl.run();
-        hero.run();
-        tintitto.run();
+
+    void playerRun() {
+        switch (vanity) {
+            case 0:
+                tor.run();
+                break;
+            case 1:
+                wizHat.run();
+                break;
+            case 2:
+                fishBowl.run();
+                break;
+            case 3:
+                hero.run();
+                break;
+            case 4:
+                tintitto.run();
+                break;
+            case 5:
+                robot.run();
+                break;
+            case 6:
+                fireman.run();
+                break;
+        }
     }
 
-    void playerDash(){
-        tor.dash();
-        wizHat.dash();
-        fishBowl.dash();
-        hero.dash();
-        tintitto.dash();
+    void playerDash() {
+        switch (vanity) {
+            case 0:
+                tor.dash();
+                break;
+            case 1:
+                wizHat.dash();
+                break;
+            case 2:
+                fishBowl.dash();
+                break;
+            case 3:
+                hero.dash();
+                break;
+            case 4:
+                tintitto.dash();
+                break;
+            case 5:
+                robot.dash();
+                break;
+            case 6:
+                fireman.dash();
+                break;
+        }
     }
-    
-    void playerJump(){
-        tor.jump();
-        wizHat.jump();
-        fishBowl.jump();
-        hero.jump();
-        tintitto.jump();
+
+    void playerJump() {
+        switch (vanity) {
+            case 0:
+                tor.jump();
+                break;
+            case 1:
+                wizHat.jump();
+                break;
+            case 2:
+                fishBowl.jump();
+                break;
+            case 3:
+                hero.jump();
+                break;
+            case 4:
+                tintitto.jump();
+                break;
+            case 5:
+                robot.jump();
+                break;
+            case 6:
+                fireman.jump();
+                break;
+        }
     }
 
 }

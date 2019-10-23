@@ -704,6 +704,28 @@
 		"/skins/Tintitto.png": {
 			"implements": "",
 			"sdcard": false
+		},
+		"/skins/Robot.aseprite": {
+			"sdcard": false
+		},
+		"/skins/Robot.json": {
+			"sdcard": false,
+			"implements": ""
+		},
+		"/skins/Robot.png": {
+			"sdcard": false,
+			"implements": ""
+		},
+		"/skins/Fireman.aseprite": {
+			"sdcard": false
+		},
+		"/skins/Fireman.json": {
+			"implements": "",
+			"sdcard": false
+		},
+		"/skins/Fireman.png": {
+			"implements": "",
+			"sdcard": false
 		}
 	}
 }
