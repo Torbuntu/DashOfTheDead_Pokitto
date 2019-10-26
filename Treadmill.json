@@ -1,0 +1,43 @@
+{ "frames": {
+   "Treadmill 0.aseprite": {
+    "frame": { "x": 0, "y": 0, "w": 48, "h": 32 },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": { "x": 0, "y": 0, "w": 48, "h": 32 },
+    "sourceSize": { "w": 48, "h": 32 },
+    "duration": 50
+   },
+   "Treadmill 1.aseprite": {
+    "frame": { "x": 48, "y": 0, "w": 48, "h": 32 },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": { "x": 0, "y": 0, "w": 48, "h": 32 },
+    "sourceSize": { "w": 48, "h": 32 },
+    "duration": 50
+   },
+   "Treadmill 2.aseprite": {
+    "frame": { "x": 96, "y": 0, "w": 48, "h": 32 },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": { "x": 0, "y": 0, "w": 48, "h": 32 },
+    "sourceSize": { "w": 48, "h": 32 },
+    "duration": 50
+   }
+ },
+ "meta": {
+  "app": "http://www.aseprite.org/",
+  "version": "1.2.15-x64",
+  "image": "Treadmill.png",
+  "format": "RGBA8888",
+  "size": { "w": 144, "h": 32 },
+  "scale": "1",
+  "frameTags": [
+   { "name": "idle", "from": 0, "to": 2, "direction": "forward" }
+  ],
+  "layers": [
+   { "name": "Layer 1", "opacity": 255, "blendMode": "normal" }
+  ],
+  "slices": [
+  ]
+ }
+}

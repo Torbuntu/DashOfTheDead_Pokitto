@@ -20,6 +20,7 @@ import backgrounds.TreeC;
 import backgrounds.CarpetA;
 import backgrounds.CarpetB;
 import backgrounds.Rockway;
+import backgrounds.Wood;
 
 import skins.Tor;
 import skins.WizardHat;
@@ -37,6 +38,7 @@ import audio.Hurt;
 import audio.Jump;
 import audio.PowerUp;
 import audio.Splat;
+import audio.Swap;
 
 class HighScore extends femto.Cookie {
     HighScore() {
@@ -85,6 +87,7 @@ class Main extends State {
     Die dieSound;
     Splat splat;
     BatSplat batSplat;
+    Swap swap;
     //end sounds
 
     int stateManager = 0; //0 title, 1 pre-run, 2 game run, 3 dead
@@ -96,6 +99,7 @@ class Main extends State {
     boolean newHighScore = false;
     boolean jump = false, dashing = false, dashReady = true, ghoulDead = false, intro = true, coinIntro = true, doorshut = true, inDungeon = true, dead = false;
     boolean resetData = false; //false = Game Start, true = Reset Data
+    boolean transIn = false, transOut = false;
     Tor tor;
     Coffee coffee;
     Ghoul ghoul;
@@ -105,6 +109,7 @@ class Main extends State {
     Coin[] coins;
     Coin coinIcon;
     Lock lock;
+    Treadmill treadmill;
 
     //VANITY
     int vanity = 0;
@@ -125,6 +130,8 @@ class Main extends State {
 
     Rockway rockway;
     int rockwayX;
+    
+    Wood wood;
 
     Door door;
     DungeonBackground dungeonBackground;
@@ -163,6 +170,7 @@ class Main extends State {
         //Sounds
         explode = new Explode(0);
         jumpSound = new Jump(0);
+        swap = new Swap(0);
 
         hurt = new Hurt(1);
         splat = new Splat(1);
@@ -179,7 +187,7 @@ class Main extends State {
 
         torCoins = 0;
 
-        tips = new String[7];
+        tips = new String[8];
         tips[0] = "Try dashing the middle of doors";
         tips[1] = "Dashing enemies will give you\nbonus coins";
         tips[2] = "Make sure to watch your power meter";
@@ -187,6 +195,7 @@ class Main extends State {
         tips[4] = "Try purchasing powerups\nto get a head start";
         tips[5] = "Careful, you can't dash\nwhile hurt";
         tips[6] = "Do you have all the\nvanity suits?";
+        tips[7] = "Hold down to drop through\nplatforms and fall quicker";
 
         //VANITY 
         tor = new Tor();
@@ -198,6 +207,8 @@ class Main extends State {
         fireman = new Fireman();
 
         lock = new Lock();
+        treadmill = new Treadmill();
+        treadmill.idle();
 
         //END Vanity
 
@@ -209,6 +220,7 @@ class Main extends State {
         treeA = new TreeA();
         treeA.idle();
         treeA.y = 129 - treeA.height();
+        wood = new Wood();
 
         carpetA = new CarpetA();
 
@@ -371,7 +383,7 @@ class Main extends State {
                     if (kills > scoreManager.killScore) scoreManager.killScore = kills;
                     scoreManager.saveCookie();
                     stateManager = 3; //Game Over!
-                    tipText = (String) tips[Math.random(0, 7)];
+                    tipText = (String) tips[Math.random(0, 8)];
                     return;
                 }
 
@@ -519,29 +531,51 @@ class Main extends State {
     //SHOP UPDATE
     void updateShop() {
         screen.textLeftLimit = 0;
-        
 
         screen.setTextColor(10);
 
         //B button switches shop screens.
         if (Button.B.justPressed()) {
-            tailor = !tailor;
-            if (tailor) {
+            //tailor = !tailor;
+            if (!tailor) {
+                tailor = true;
+                transIn = true;
+                tor.x = -16;
                 message = "Welcome to the tailor's shop!\nHave a look around with [<-] and [->].";
             } else {
+                transOut = true;
                 if (!vanityCheck()) {
                     vanity = 0;
                 }
             }
         }
         if (tailor) {
+            if(transIn){
+                if(tor.x < 86) tor.x+=1;
+                drawPlayer();
+                if(tor.x == 86) transIn = false;
+                return;
+            }
+            if(transOut){
+                if(tor.x > -16) tor.x-=1;
+                playerMirror(true);
+                drawPlayer();
+                if(tor.x == -16) {
+                    transOut = false;
+                    tailor = false;
+                    playerMirror(false);
+                }
+                return;
+            }
             if (Button.Right.justPressed()) {
                 vanity++;
+                swap.play();
                 if (vanity > 6) vanity = 6;
                 message = vanityMessage();
             }
             if (Button.Left.justPressed()) {
                 vanity--;
+                swap.play();
                 if (vanity < 0) vanity = 0;
                 message = vanityMessage();
             }
@@ -633,6 +667,13 @@ class Main extends State {
                 coinIcon.draw(screen, 4, 30);
                 screen.setTextPosition(14, 32);
             } else screen.setTextPosition(4, 32);
+            
+            screen.fillRect(0, 130, 220, 6, 4);
+            for(int i = 0; i < 10; i++){
+                wood.draw(screen, 22 * i, 136);
+                wood.draw(screen, 22 * i, 148);
+            }
+            treadmill.draw(screen, 80, 102);
         } else {
             drawGround();
             screen.fillRect(0, 0, 220, 40, 0);
@@ -692,8 +733,14 @@ class Main extends State {
                 stateManager = 2; //START GAME
             }
 
-            coinIcon.draw(screen, 0, 8);
-            screen.setTextPosition(10, 10);
+            
+            //draw text box
+            screen.textLeftLimit = 4;
+            screen.drawRect(0, 18, 219, 40, 5);
+            screen.fillRect(1, 19, 218, 39, 12);
+            
+            coinIcon.draw(screen, 2, 20);
+            screen.setTextPosition(12, 22);
             screen.println("" + torCoins);
             screen.println("Best run: " + scoreManager.distScore);
             message = "[B] Go to tailor.\n[<-] or [->] Select power up.\n[A] to purchase for 10 coins each.";
@@ -701,7 +748,7 @@ class Main extends State {
                 c.draw(screen);
             }
         }
-
+        
         switch (vanity) {
             case 0:
                 tor.draw(screen, 86, 100);
@@ -749,7 +796,7 @@ class Main extends State {
                 }
                 break;
         }
-        if (!vanityCheck()) lock.draw(screen, tor.x + tor.width() / 2, tor.y + tor.height() / 2);
+        if (!vanityCheck()) lock.draw(screen, 102, 116);
         screen.println(message);
     }
     //END SHOP UPDATE
@@ -1450,5 +1497,30 @@ class Main extends State {
                 break;
         }
     }
-
+    
+    void playerMirror(boolean value){
+        switch (vanity) {
+            case 0:
+                tor.setMirrored(value);
+                break;
+            case 1:
+                wizHat.setMirrored(value);
+                break;
+            case 2:
+                fishBowl.setMirrored(value);
+                break;
+            case 3:
+                hero.setMirrored(value);
+                break;
+            case 4:
+                tintitto.setMirrored(value);
+                break;
+            case 5:
+                robot.setMirrored(value);
+                break;
+            case 6:
+                fireman.setMirrored(value);
+                break;
+        }
+    }
 }

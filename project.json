@@ -726,6 +726,27 @@
 		"/skins/Fireman.png": {
 			"implements": "",
 			"sdcard": false
+		},
+		"/Treadmill.aseprite": {
+			"sdcard": false
+		},
+		"/Treadmill.json": {
+			"sdcard": false,
+			"implements": ""
+		},
+		"/Treadmill.png": {
+			"sdcard": false,
+			"implements": ""
+		},
+		"/backgrounds/Wood.png": {
+			"sdcard": false,
+			"implements": ""
+		},
+		"/audio/Swap.wav": {
+			"sdcard": false
+		},
+		"/.goutputstream-R2CPA0": {
+			"sdcard": false
 		}
 	}
 }
