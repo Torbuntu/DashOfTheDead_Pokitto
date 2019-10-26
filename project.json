@@ -747,6 +747,9 @@
 		},
 		"/.goutputstream-R2CPA0": {
 			"sdcard": false
+		},
+		"/LICENSE": {
+			"sdcard": false
 		}
 	}
 }
