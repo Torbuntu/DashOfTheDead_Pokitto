@@ -40,27 +40,10 @@ import audio.PowerUp;
 import audio.Splat;
 import audio.Swap;
 
-class HighScore extends femto.Cookie {
-    HighScore() {
+class CookieManager extends femto.Cookie {
+    CookieManager() {
         super();
-        begin("DIST"); //distance
-        begin("KILL");
-        begin("COIN");
-    }
-    int distScore;
-    int killScore;
-    int coins;
-}
-
-class VanityManager extends femto.Cookie {
-    VanityManager() {
-        super();
-        begin("WIZ");
-        begin("FISH");
-        begin("HERO");
-        begin("TIN");
-        begin("ROBO");
-        begin("FIRE");
+        begin("DOTDC");
     }
     boolean hasWizHat;
     boolean hasFishBowl;
@@ -68,14 +51,15 @@ class VanityManager extends femto.Cookie {
     boolean hasTin;
     boolean hasRobo;
     boolean hasFire;
+    
+    int distScore;
+    int killScore;
+    int coins;
 }
 
 class Main extends State {
 
-    static final
-    var scoreManager = new HighScore();
-    static final
-    var vanityManager = new VanityManager();
+    static final var cookieManager = new CookieManager();
 
     HiRes16Color screen; // the screenmode we want to draw with
     //sounds
@@ -376,12 +360,12 @@ class Main extends State {
                     screen.cameraX = 0;
                     screen.cameraY = 0;
                     dieSound.play();
-                    if ((distance / 10) > scoreManager.distScore) {
+                    if ((distance / 10) > cookieManager.distScore) {
                         newHighScore = true;
-                        scoreManager.distScore = (distance / 10);
+                        cookieManager.distScore = (distance / 10);
                     }
-                    if (kills > scoreManager.killScore) scoreManager.killScore = kills;
-                    scoreManager.saveCookie();
+                    if (kills > cookieManager.killScore) cookieManager.killScore = kills;
+                    cookieManager.saveCookie();
                     stateManager = 3; //Game Over!
                     tipText = (String) tips[Math.random(0, 8)];
                     return;
@@ -487,7 +471,7 @@ class Main extends State {
         screen.setTextColor(6);
 
         screen.setTextPosition(0, 0);
-        screen.println("Best run: " + scoreManager.distScore);
+        screen.println("Best run: " + cookieManager.distScore);
 
         screen.setTextPosition((screen.width() - screen.textWidth("Game Start")) / 2, 150);
         screen.println("Game Start");
@@ -509,18 +493,18 @@ class Main extends State {
 
         if (Button.C.justPressed() || Button.A.justPressed()) {
             if (resetData) {
-                scoreManager.distScore = 0;
-                scoreManager.coins = 0;
-                scoreManager.killScore = 0;
-                scoreManager.saveCookie();
+                cookieManager.distScore = 0;
+                cookieManager.coins = 0;
+                cookieManager.killScore = 0;
+                cookieManager.saveCookie();
 
-                vanityManager.hasFishBowl = false;
-                vanityManager.hasWizHat = false;
-                vanityManager.hasHero = false;
-                vanityManager.hasTin = false;
-                vanityManager.hasRobo = false;
-                vanityManager.hasFire = false;
-                vanityManager.saveCookie();
+                cookieManager.hasFishBowl = false;
+                cookieManager.hasWizHat = false;
+                cookieManager.hasHero = false;
+                cookieManager.hasTin = false;
+                cookieManager.hasRobo = false;
+                cookieManager.hasFire = false;
+                cookieManager.saveCookie();
             } else {
                 stateManager = 1; //Go to preStart 
             }
@@ -583,11 +567,11 @@ class Main extends State {
             if (Button.A.justPressed()) {
                 switch (vanity) {
                     case 1:
-                        if (!vanityManager.hasWizHat) {
+                        if (!cookieManager.hasWizHat) {
                             if (torCoins >= 500) {
                                 torCoins -= 500;
-                                vanityManager.hasWizHat = true;
-                                vanityManager.saveCookie();
+                                cookieManager.hasWizHat = true;
+                                cookieManager.saveCookie();
                                 coinCollect.play();
                             } else {
                                 message = message + "\nYou're short " + (500 - torCoins) + " coins.";
@@ -595,11 +579,11 @@ class Main extends State {
                         }
                         break;
                     case 2:
-                        if (!vanityManager.hasFishBowl) {
+                        if (!cookieManager.hasFishBowl) {
                             if (torCoins >= 500) {
                                 torCoins -= 500;
-                                vanityManager.hasFishBowl = true;
-                                vanityManager.saveCookie();
+                                cookieManager.hasFishBowl = true;
+                                cookieManager.saveCookie();
                                 coinCollect.play();
                             } else {
                                 message = message + "\nYou're short " + (500 - torCoins) + " coins.";
@@ -607,11 +591,11 @@ class Main extends State {
                         }
                         break;
                     case 3:
-                        if (!vanityManager.hasHero) {
+                        if (!cookieManager.hasHero) {
                             if (torCoins >= 750) {
                                 torCoins -= 750;
-                                vanityManager.hasHero = true;
-                                vanityManager.saveCookie();
+                                cookieManager.hasHero = true;
+                                cookieManager.saveCookie();
                                 coinCollect.play();
                             } else {
                                 message = message + "\nYou're short " + (750 - torCoins) + " coins.";
@@ -619,11 +603,11 @@ class Main extends State {
                         }
                         break;
                     case 4:
-                        if (!vanityManager.hasTin) {
+                        if (!cookieManager.hasTin) {
                             if (torCoins >= 750) {
                                 torCoins -= 750;
-                                vanityManager.hasTin = true;
-                                vanityManager.saveCookie();
+                                cookieManager.hasTin = true;
+                                cookieManager.saveCookie();
                                 coinCollect.play();
                             } else {
                                 message = message + "\nYou're short" + (750 - torCoins) + " coins.";
@@ -631,11 +615,11 @@ class Main extends State {
                         }
                         break;
                     case 5:
-                        if (!vanityManager.hasRobo) {
+                        if (!cookieManager.hasRobo) {
                             if (torCoins >= 1000) {
                                 torCoins -= 1000;
-                                vanityManager.hasRobo = true;
-                                vanityManager.saveCookie();
+                                cookieManager.hasRobo = true;
+                                cookieManager.saveCookie();
                                 coinCollect.play();
                             } else {
                                 message = message + "\nYou're short" + (1000 - torCoins) + " coins.";
@@ -643,11 +627,11 @@ class Main extends State {
                         }
                         break;
                     case 6:
-                        if (!vanityManager.hasFire) {
+                        if (!cookieManager.hasFire) {
                             if (torCoins >= 1000) {
                                 torCoins -= 1000;
-                                vanityManager.hasFire = true;
-                                vanityManager.saveCookie();
+                                cookieManager.hasFire = true;
+                                cookieManager.saveCookie();
                                 coinCollect.play();
                             } else {
                                 message = message + "\nYou're short" + (1000 - torCoins) + " coins.";
@@ -742,7 +726,7 @@ class Main extends State {
             coinIcon.draw(screen, 2, 20);
             screen.setTextPosition(12, 22);
             screen.println("" + torCoins);
-            screen.println("Best run: " + scoreManager.distScore);
+            screen.println("Best run: " + cookieManager.distScore);
             message = "[B] Go to tailor.\n[<-] or [->] Select power up.\n[A] to purchase for 10 coins each.";
             for (Coin c: coins) {
                 c.draw(screen);
@@ -756,42 +740,42 @@ class Main extends State {
             case 1:
                 wizHat.draw(screen, 86, 100);
                 if (tailor) {
-                    if (!vanityManager.hasWizHat) screen.println("500 : [A] Purchase?");
+                    if (!cookieManager.hasWizHat) screen.println("500 : [A] Purchase?");
                     else screen.println("[B] to Wear");
                 }
                 break;
             case 2:
                 fishBowl.draw(screen, 86, 100);
                 if (tailor) {
-                    if (!vanityManager.hasFishBowl) screen.println("500 : [A] Purchase?");
+                    if (!cookieManager.hasFishBowl) screen.println("500 : [A] Purchase?");
                     else screen.println("[B] to Wear");
                 }
                 break;
             case 3:
                 hero.draw(screen, 86, 100);
                 if (tailor) {
-                    if (!vanityManager.hasHero) screen.println("750 : [A] Purchase?");
+                    if (!cookieManager.hasHero) screen.println("750 : [A] Purchase?");
                     else screen.println("[B] to Wear");
                 }
                 break;
             case 4:
                 tintitto.draw(screen, 86, 100);
                 if (tailor) {
-                    if (!vanityManager.hasTin) screen.println("750 : [A] Purchase?");
+                    if (!cookieManager.hasTin) screen.println("750 : [A] Purchase?");
                     else screen.println("[B] to Wear");
                 }
                 break;
             case 5:
                 robot.draw(screen, 86, 100);
                 if (tailor) {
-                    if (!vanityManager.hasRobo) screen.println("1,000 : [A] Purchase?");
+                    if (!cookieManager.hasRobo) screen.println("1,000 : [A] Purchase?");
                     else screen.println("[B] to Wear");
                 }
                 break;
             case 6:
                 fireman.draw(screen, 86, 100);
                 if (tailor) {
-                    if (!vanityManager.hasFire) screen.println("1,000 : [A] Purchase?");
+                    if (!cookieManager.hasFire) screen.println("1,000 : [A] Purchase?");
                     else screen.println("[B] to Wear");
                 }
                 break;
@@ -824,7 +808,7 @@ class Main extends State {
         screen.setTextPosition(60, 42);
         screen.textLeftLimit = 60;
 
-        screen.println("Best run: " + scoreManager.distScore);
+        screen.println("Best run: " + cookieManager.distScore);
         screen.println("This run: " + distance / 10);
         screen.println("Coins: " + torCoins);
         screen.println("Kills: " + kills);
@@ -846,17 +830,17 @@ class Main extends State {
             case 0:
                 return true;
             case 1:
-                return vanityManager.hasWizHat;
+                return cookieManager.hasWizHat;
             case 2:
-                return vanityManager.hasFishBowl;
+                return cookieManager.hasFishBowl;
             case 3:
-                return vanityManager.hasHero;
+                return cookieManager.hasHero;
             case 4:
-                return vanityManager.hasTin;
+                return cookieManager.hasTin;
             case 5:
-                return vanityManager.hasRobo;
+                return cookieManager.hasRobo;
             case 6:
-                return vanityManager.hasFire;
+                return cookieManager.hasFire;
             default:
                 return false;
         }
