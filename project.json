@@ -19,6 +19,15 @@
 		"Pokitto": [
 			"${appPath}/javacompiler/pokitto/libs/startup.cpp",
 			"${appPath}/javacompiler/pokitto/libs/SystemInit.s"
+		],
+		"linux": "Desktop",
+		"windows": "Desktop",
+		"darwin": "Desktop",
+		"Desktop": [
+			{
+				"recurse": "${appPath}/PokittoLib/Pokitto",
+				"ignore": "BmpImage.cpp|ChaN|old_32bitSDL|libpff|SDFileSystem|File/ChaN|USBDevice|tinydir/tests|tinydir/samples|JoyHat|mbed-pokitto|POKITTO_HW|POKITTO_XTERNALS|PokittoDisk.cpp|PokittoBattery.cpp|Documentation|examples?|Physics|main.cpp|Pokitto_simsound.cpp"
+			}
 		]
 	},
 	"SFlags": {
@@ -58,13 +67,15 @@
 			"-Wno-psabi"
 		],
 		"Desktop": [
-			"-I${appPath}/javacompiler/desktop/includes",
 			"-I${projectPath}",
-			"-DDESKTOP",
+			"-DPOK_SIM",
+			"-Wall",
+			"-std=gnu++17",
+			"-fsigned-char",
+			"-DPOK_SIM",
 			"-fno-rtti",
 			"-Wno-pointer-arith",
 			"-c",
-			"-fno-exceptions",
 			"-fno-builtin",
 			"-ffunction-sections",
 			"-fdata-sections",
@@ -73,8 +84,16 @@
 			"-fno-delete-null-pointer-checks"
 		],
 		"ALL": [
-			"-std=c++14"
-		]
+			"-std=c++17"
+		],
+		"linux": {
+			"extend": "Desktop",
+			"flags": [
+				"-DPROJ_LINUX=1",
+				"-D_REENTRANT"
+			]
+		},
+		"windows": "Desktop"
 	},
 	"GDBFlags": {
 		"Pokitto": [
@@ -164,7 +183,9 @@
 		},
 		"/project.json": {
 			"sdcard": false,
-			"implements": ""
+			"implements": "",
+			"palette": "[default]",
+			"palOffset": 0
 		},
 		"/README.md": {
 			"sdcard": false
@@ -294,7 +315,9 @@
 		},
 		"/JavaDashOfTheDead.bin.1.png": {
 			"sdcard": false,
-			"implements": ""
+			"implements": "",
+			"palette": "[default]",
+			"palOffset": 0
 		},
 		"/Bat.aseprite": {
 			"sdcard": false
@@ -341,79 +364,109 @@
 		},
 		"/backgrounds/Door.json": {
 			"sdcard": false,
-			"implements": ""
+			"implements": "",
+			"palette": "[default]",
+			"palOffset": 0
 		},
 		"/backgrounds/Door.png": {
 			"sdcard": false,
-			"implements": ""
+			"implements": "",
+			"palette": "[default]",
+			"palOffset": 0
 		},
 		"/backgrounds/DungeonBackground.aseprite": {
 			"sdcard": false
 		},
 		"/backgrounds/DungeonBackground.png": {
 			"sdcard": false,
-			"implements": ""
+			"implements": "",
+			"palette": "[default]",
+			"palOffset": 0
 		},
 		"/backgrounds/FrontBackground.png": {
 			"sdcard": false,
-			"implements": ""
+			"implements": "",
+			"palette": "[default]",
+			"palOffset": 0
 		},
 		"/backgrounds/Platform.aseprite": {
 			"sdcard": false
 		},
 		"/backgrounds/Platform.json": {
 			"sdcard": false,
-			"implements": ""
+			"implements": "",
+			"palette": "[default]",
+			"palOffset": 0
 		},
 		"/backgrounds/Platform.png": {
 			"sdcard": false,
-			"implements": ""
+			"implements": "",
+			"palette": "[default]",
+			"palOffset": 0
 		},
 		"/enemies/Bat.aseprite": {
 			"sdcard": false
 		},
 		"/enemies/Bat.json": {
 			"sdcard": false,
-			"implements": ""
+			"implements": "",
+			"palette": "[default]",
+			"palOffset": 0
 		},
 		"/enemies/Bat.png": {
 			"sdcard": false,
-			"implements": ""
+			"implements": "",
+			"palette": "[default]",
+			"palOffset": 0
 		},
 		"/enemies/Ghoul.aseprite": {
 			"sdcard": false
 		},
 		"/enemies/Ghoul.json": {
 			"sdcard": false,
-			"implements": ""
+			"implements": "",
+			"palette": "[default]",
+			"palOffset": 0
 		},
 		"/enemies/Ghoul.png": {
 			"sdcard": false,
-			"implements": ""
+			"implements": "",
+			"palette": "[default]",
+			"palOffset": 0
 		},
 		"/enemies/Spikes.aseprite": {
 			"sdcard": false
 		},
 		"/enemies/Spikes.json": {
 			"sdcard": false,
-			"implements": ""
+			"implements": "",
+			"palette": "[default]",
+			"palOffset": 0
 		},
 		"/enemies/Spikes.png": {
 			"sdcard": false,
-			"implements": ""
+			"implements": "",
+			"palette": "[default]",
+			"palOffset": 0
 		},
 		"/Coin.aseprite": {
 			"sdcard": false
 		},
 		"/Coin.json": {
 			"sdcard": false,
-			"implements": ""
+			"implements": "",
+			"palette": "[default]",
+			"palOffset": 0
 		},
 		"/Coin.png": {
 			"sdcard": false,
-			"implements": ""
+			"implements": "",
+			"palette": "[default]",
+			"palOffset": 0
 		},
-		"/DashOfTheDead": {},
+		"/DashOfTheDead": {
+			"sdcard": false
+		},
 		"/DashOfTheDead/DashOfTheDead": {
 			"sdcard": false
 		},
@@ -428,11 +481,15 @@
 		},
 		"/Coffee.json": {
 			"sdcard": false,
-			"implements": ""
+			"implements": "",
+			"palette": "[default]",
+			"palOffset": 0
 		},
 		"/Coffee.png": {
 			"sdcard": false,
-			"implements": ""
+			"implements": "",
+			"palette": "[default]",
+			"palOffset": 0
 		},
 		"/JavaDashOfTheDead.bin.2.gif": {
 			"sdcard": false
@@ -541,7 +598,9 @@
 		},
 		"/Title.png": {
 			"sdcard": false,
-			"implements": ""
+			"implements": "",
+			"palette": "[default]",
+			"palOffset": 0
 		},
 		"/Drago.aseprite": {
 			"sdcard": false
@@ -565,15 +624,21 @@
 		},
 		"/backgrounds/TreeA.png": {
 			"sdcard": false,
-			"implements": ""
+			"implements": "",
+			"palette": "[default]",
+			"palOffset": 0
 		},
 		"/backgrounds/TreeB.png": {
 			"sdcard": false,
-			"implements": ""
+			"implements": "",
+			"palette": "[default]",
+			"palOffset": 0
 		},
 		"/backgrounds/TreeC.png": {
 			"sdcard": false,
-			"implements": ""
+			"implements": "",
+			"palette": "[default]",
+			"palOffset": 0
 		},
 		"/audio": {
 			"sdcard": false
@@ -610,77 +675,105 @@
 		},
 		"/backgrounds/TreeA.json": {
 			"sdcard": false,
-			"implements": ""
+			"implements": "",
+			"palette": "[default]",
+			"palOffset": 0
 		},
 		"/backgrounds/CarpetA.aseprite": {
 			"sdcard": false
 		},
 		"/backgrounds/CarpetA.png": {
 			"sdcard": false,
-			"implements": ""
+			"implements": "",
+			"palette": "[default]",
+			"palOffset": 0
 		},
 		"/backgrounds/CarpetB.png": {
 			"sdcard": false,
-			"implements": ""
+			"implements": "",
+			"palette": "[default]",
+			"palOffset": 0
 		},
 		"/enemies/Vampyre.aseprite": {
 			"sdcard": false
 		},
 		"/enemies/Vampyre.json": {
 			"sdcard": false,
-			"implements": ""
+			"implements": "",
+			"palette": "[default]",
+			"palOffset": 0
 		},
 		"/enemies/Vampyre.png": {
 			"sdcard": false,
-			"implements": ""
+			"implements": "",
+			"palette": "[default]",
+			"palOffset": 0
 		},
 		"/backgrounds/Rockway.png": {
 			"sdcard": false,
-			"implements": ""
+			"implements": "",
+			"palette": "[default]",
+			"palOffset": 0
 		},
 		"/skins/FishBowl.aseprite": {
 			"sdcard": false
 		},
 		"/skins/FishBowl.json": {
 			"sdcard": false,
-			"implements": ""
+			"implements": "",
+			"palette": "[default]",
+			"palOffset": 0
 		},
 		"/skins/FishBowl.png": {
 			"sdcard": false,
-			"implements": ""
+			"implements": "",
+			"palette": "[default]",
+			"palOffset": 0
 		},
 		"/skins/Hero.aseprite": {
 			"sdcard": false
 		},
 		"/skins/Hero.json": {
 			"sdcard": false,
-			"implements": ""
+			"implements": "",
+			"palette": "[default]",
+			"palOffset": 0
 		},
 		"/skins/Hero.png": {
 			"sdcard": false,
-			"implements": ""
+			"implements": "",
+			"palette": "[default]",
+			"palOffset": 0
 		},
 		"/skins/Tor.aseprite": {
 			"sdcard": false
 		},
 		"/skins/Tor.json": {
 			"sdcard": false,
-			"implements": ""
+			"implements": "",
+			"palette": "[default]",
+			"palOffset": 0
 		},
 		"/skins/Tor.png": {
 			"sdcard": false,
-			"implements": ""
+			"implements": "",
+			"palette": "[default]",
+			"palOffset": 0
 		},
 		"/skins/WizardHat.aseprite": {
 			"sdcard": false
 		},
 		"/skins/WizardHat.json": {
 			"sdcard": false,
-			"implements": ""
+			"implements": "",
+			"palette": "[default]",
+			"palOffset": 0
 		},
 		"/skins/WizardHat.png": {
 			"sdcard": false,
-			"implements": ""
+			"implements": "",
+			"palette": "[default]",
+			"palOffset": 0
 		},
 		"/backgrounds/HallwayPillars.png": {
 			"sdcard": false,
@@ -692,55 +785,75 @@
 		},
 		"/Lock.png": {
 			"sdcard": false,
-			"implements": ""
+			"implements": "",
+			"palette": "[default]",
+			"palOffset": 0
 		},
 		"/skins/Tintitto.aseprite": {
 			"sdcard": false
 		},
 		"/skins/Tintitto.json": {
 			"implements": "",
-			"sdcard": false
+			"sdcard": false,
+			"palette": "[default]",
+			"palOffset": 0
 		},
 		"/skins/Tintitto.png": {
 			"implements": "",
-			"sdcard": false
+			"sdcard": false,
+			"palette": "[default]",
+			"palOffset": 0
 		},
 		"/skins/Robot.aseprite": {
 			"sdcard": false
 		},
 		"/skins/Robot.json": {
 			"sdcard": false,
-			"implements": ""
+			"implements": "",
+			"palette": "[default]",
+			"palOffset": 0
 		},
 		"/skins/Robot.png": {
 			"sdcard": false,
-			"implements": ""
+			"implements": "",
+			"palette": "[default]",
+			"palOffset": 0
 		},
 		"/skins/Fireman.aseprite": {
 			"sdcard": false
 		},
 		"/skins/Fireman.json": {
 			"implements": "",
-			"sdcard": false
+			"sdcard": false,
+			"palette": "[default]",
+			"palOffset": 0
 		},
 		"/skins/Fireman.png": {
 			"implements": "",
-			"sdcard": false
+			"sdcard": false,
+			"palette": "[default]",
+			"palOffset": 0
 		},
 		"/Treadmill.aseprite": {
 			"sdcard": false
 		},
 		"/Treadmill.json": {
 			"sdcard": false,
-			"implements": ""
+			"implements": "",
+			"palette": "[default]",
+			"palOffset": 0
 		},
 		"/Treadmill.png": {
 			"sdcard": false,
-			"implements": ""
+			"implements": "",
+			"palette": "[default]",
+			"palOffset": 0
 		},
 		"/backgrounds/Wood.png": {
 			"sdcard": false,
-			"implements": ""
+			"implements": "",
+			"palette": "[default]",
+			"palOffset": 0
 		},
 		"/audio/Swap.wav": {
 			"sdcard": false
@@ -750,6 +863,13 @@
 		},
 		"/LICENSE": {
 			"sdcard": false
+		},
+		"/JavaDashOfTheDead.eeprom": {
+			"sdcard": false
 		}
+	},
+	"ideVersion": 10000,
+	"BUILDFlags": {
+		"Pokitto": {}
 	}
 }

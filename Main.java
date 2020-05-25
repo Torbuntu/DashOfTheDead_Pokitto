@@ -936,7 +936,8 @@ class Main extends State {
     void updateDrawDoor() {
         if (door.x > -10) {
             door.x -= 1 + speed;
-            if (tor.y > 20 && tor.y + tor.height() < 108 && tor.x + tor.width() / 2 > door.x && doorshut) {
+            
+            if (tor.y > 16 && tor.y + tor.height() < 114 && tor.x + tor.width() / 2 > door.x && doorshut) {
                 if (dashing) {
                     door.broken();
                     doorShake = 3.0f;
@@ -948,7 +949,7 @@ class Main extends State {
                     //SO DEAD. GameOver
                 }
             }
-            if ((tor.y < 20 || tor.y + tor.height() > 108) && (tor.x + tor.width() / 2) > door.x && doorshut) {
+            if ((tor.y < 16 || tor.y + tor.height() > 114) && (tor.x + tor.width() / 2) > door.x && doorshut) {
                 torHurt = cooldown;
                 torHits = 0;
                 //SO DEAD. GameOver
@@ -1087,8 +1088,8 @@ class Main extends State {
     }
 
     void checkGhoulGrabTor() {
-        // screen.drawRect(ghoul.x, ghoul.y, ghoul.width(), ghoul.height()-8, 10, false);
-        if (collidesWithTor(ghoul.x, ghoul.y, ghoul.width(), ghoul.height() - 8)) {
+        // screen.drawRect(ghoul.x+8, ghoul.y+2, ghoul.width()-12, ghoul.height()-16, 10, false);
+        if (collidesWithTor(ghoul.x+8, ghoul.y+2, ghoul.width()-12, ghoul.height() - 16)) {
             if (dashing && !ghoulDead) {
                 ghoul.dead();
                 ghoulDead = true;
